@@ -27,7 +27,7 @@ struct inode{
     int owner_id;
     int group_id;
     char type;
-    char perms;
+    int perms;
     float accessed;
     float file_modified;
     float inode_modified;
@@ -102,7 +102,7 @@ void initalize_inodes(){
         inode->owner_id = -1;
         inode->group_id = -1;
         inode->type = (char)0;
-        inode->perms = (char)0;
+        inode->perms = (int)0;
         inode->accessed = 0.0;
         inode->file_modified = 0.0;
         inode->inode_modified = 0.0;
