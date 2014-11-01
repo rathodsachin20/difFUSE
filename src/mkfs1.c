@@ -44,11 +44,11 @@ void initialize_superblock(FILE* fp){
 
     // Initialize list of cached free blocks
     int i;
-    for(i = 0; i < FREE_BLOCKS_LIST_SIZE-1; i++)
+    for(i = 1; i < FREE_BLOCKS_LIST_SIZE; i++)
         sb->list_free_blocks[i] = 0;
-    sb->list_free_blocks[FREE_BLOCKS_LIST_SIZE-1] = 1 + NUM_INODE_BLOCKS;  //Ex. [0,0,0,0,21]
+    sb->list_free_blocks[0] = 1 + NUM_INODE_BLOCKS;  //Ex. [21,0,0,0,0]
 
-    sb->index_next_free_block = FREE_BLOCKS_LIST_SIZE - 1;
+    sb->index_next_free_block = 0;
 
     // Initialize list of cached free inodes
     for(i = 0; i < FREE_INODES_LIST_SIZE; i++)              // Inode number starts from 1

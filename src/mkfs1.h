@@ -1,10 +1,6 @@
 #ifndef __mkfs_h__
 #define __mkfs_h__
 
-#include <fcntl.h>
-#include <stdio.h>
-#include <fuse.h>
-#include <stdint.h>
 #include "global.h"
 
 void mkfs(const char* filepath);

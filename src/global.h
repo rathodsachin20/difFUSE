@@ -12,14 +12,20 @@
 #define NUM_INODE_BLOCKS (NUM_INODES * INODE_SIZE) / BLOCK_SIZE + 1
 #define is_bigendian() ( (*(char*)&i) == 0 )
 
+#include <fcntl.h>
+#include <stdio.h>
+#include <fuse.h>
+#include <stdint.h>
+#include <stdlib.h>
+
 struct superblock{
     unsigned long size_fs;
     unsigned num_free_blocks;
     unsigned long list_free_blocks[FREE_BLOCKS_LIST_SIZE];
-    unsigned index_next_free_block;
+    int16_t index_next_free_block;
     //struct inode **list_free_inodes;
     unsigned long list_free_inodes[FREE_INODES_LIST_SIZE];
-    unsigned index_next_free_inode;
+    int16_t index_next_free_inode;
     unsigned num_free_inodes; //Total num of free inodes
 }superblock;
 
