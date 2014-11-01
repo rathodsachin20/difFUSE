@@ -38,6 +38,7 @@ void get_new_free_blocks_list(int ** newlist, long block_num, FILE* fp){
         printf("block num=%ld\n", block_num);
         fseek(fp, BLOCK_SIZE * new_block_num, SEEK_SET);
         fread(bl, sizeof(struct block_list), 1, fp);
+
         for(i=num_entries-1; i>=0; i--){
             if(bl->list[i]){
                 (*newlist)[current_index] = bl->list[i];
@@ -68,5 +69,32 @@ long get_free_block_offset(FILE* fp){
     return BLOCK_SIZE * block_num;
 }
 
+//implementing allocation of free inode...
+struct inode* alloc_inode(FILE *fp){
+    struct superblock *sb = &superblock;
+    struct inode* temp = NULL;
+    int16_t index = sb->index_next_free_inode;
+    if(index != 0){
+	//allocate from free inode list in sb
+	inode_num = sb->list_free_inodes[index];
+	if( get_free_inode(fp,inode_num,&temp) == 0 ){
+	    printf("Could not read inode\n");
+	    }
+	//initialize inode
+    }
+    else{
+	//scan for new inode. refill the list.
+    }
+}
+
+long int get_free_inode(FILE * fp, long int inode_num, struct node* inodep){
+    long int num_inode_per_block = BLOCK_SIZE/INODE_SIZE;
+    long int block_num = ((inode_num-1) / num_inode_per_block) + 1;
+    long int offset = ((inode_num-1) % num_inode_per_block) * INODE_SIZE;
+    long int pos = (block_num * BLOCK_SIZE) + offset;
+    fseek(fp, pos, SEEK_SET);
+    fread(inodep, sizeof(struct inode), 1, fp);
+    }
+    
 
 //#endif

@@ -1,12 +1,5 @@
 #include "mkfs1.h"
 
-
-//int main(){
-    //struct superblock *sb = (struct superblock *) malloc(sizeof(struct superblock));
-    //struct inode *table_inode = (struct inode *) malloc(sizeof(struct inode)*num_inode);
-//    return 0;
-//}
-
 void mkfs(const char* filepath){
     printf("IN FUNCION mkfs.\n");
     //FILE* fp = fopen(filepath, "w+");
@@ -104,9 +97,9 @@ void initalize_inodes(FILE* fp){
 void write_inode(FILE* fp, long inumber, struct inode* inodep){
     printf("IN FUNCION write_inode.\n");
     // Position to seek. Inode number start from 1
-    long block_num = ((inumber - 1) / (BLOCK_SIZE / INODE_SIZE)) + 1;
-    short offset = ((inumber - 1) % (BLOCK_SIZE / INODE_SIZE)) * INODE_SIZE;
-    long pos = (block_num * BLOCK_SIZE) + offset;
+    long block_num = ((inumber - 1) / (BLOCK_SIZE / INODE_SIZE)) + 1; //get blk num to write inode in
+    short offset = ((inumber - 1) % (BLOCK_SIZE / INODE_SIZE)) * INODE_SIZE; //get offset in that blk
+    long pos = (block_num * BLOCK_SIZE) + offset; //get exact pos to begin writing
     fseek(fp, pos, SEEK_SET);
     fwrite(inodep, sizeof(struct inode), 1, fp); //fputs??
     //fflush(fp);   -- IS THIS NEEDED?
