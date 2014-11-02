@@ -14,4 +14,10 @@ long get_free_block_offset();
 
 void free_block(FILE* fp, long block_num);
 
+long get_free_inode(FILE* fp, struct inode* nodep);
+
+void get_inode_struct(FILE* fp, long inode_num, struct inode* nodep);
+
+void write_inode_struct(FILE* fp, long inode_num, struct inode* nodep);
+
 #endif

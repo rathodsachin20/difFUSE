@@ -3,6 +3,12 @@
 
 #include "fsutil.h"
 
+
+//NEED TO WRITE SUPERBLOCK TO DISK IN EVERY FUNCTION
+
+
+
+
 long get_free_block_num(FILE* fp){
     struct superblock* sb;
     sb = &superblock;
@@ -144,6 +150,110 @@ void free_block(FILE*fp, long block_num){
 
 
 
+long get_free_inode(FILE* fp, struct inode* nodep){
+    struct superblock* sb = &superblock;
+    long inode_num;
+    int16_t index = sb->index_next_free_inode;
+    struct inode curr_inode;
+
+    printf("INDEX=%d..", index);
+    inode_num = sb->list_free_inodes[index];
+    if(inode_num==0){
+        printf("NO MORE INODES AVAILABLE!");
+        return 0;
+    }
+    if(index > 0){
+        // return node at index, update index
+        sb->index_next_free_inode -= 1;
+    }
+    else{ //index=0, return this node, update list in superblock, update index
+        //inode_num = sb->list_free_inodes[0];
+        long curr_inode_num = inode_num + 1;
+        int16_t curr_index = FREE_INODES_LIST_SIZE-1;
+        if(curr_inode_num >= NUM_INODES){
+            printf("NO MORE INODES AVAILABLE!");
+            return 0;
+        }
+        else{
+            sb->index_next_free_inode = FREE_INODES_LIST_SIZE-1;
+        }
+        // Get new inodes
+        while(curr_inode_num < NUM_INODES){
+            printf("Curr_inode_num=%ld\n", curr_inode_num);
+            if(curr_index < 0)
+                break;
+            get_inode_struct(fp, curr_inode_num, &curr_inode);
+            if(curr_inode.type == 0){
+                sb->list_free_inodes[curr_index] = curr_inode_num;
+                curr_index--;
+            }
+            curr_inode_num++;
+            if(curr_inode_num == NUM_INODES){
+                printf("Last inode added. curr_index=%d\n",curr_index);
+                int i;
+                for(; curr_index>=0; curr_index--){
+                    sb->list_free_inodes[curr_index] = 0;                    
+                }
+            }
+        }
+    }
+    get_inode_struct(fp, inode_num, nodep);
+    nodep->type = 1;
+    write_inode(fp, inode_num, nodep);
+    printf("You got inode no. %ld\n", inode_num);
+    sb->num_free_inodes -= 1;
+    return inode_num;
+}
+
+
+void get_inode_struct(FILE* fp, long inode_num, struct inode* nodep){
+    long curr_block = ((inode_num - 1) / (BLOCK_SIZE/INODE_SIZE)) + 1;
+    int offset = ((inode_num - 1) % (BLOCK_SIZE/INODE_SIZE)) * INODE_SIZE;
+    long pos = BLOCK_SIZE * curr_block + offset;
+    //struct inode node;
+    fseek(fp, pos, SEEK_SET);
+    fread(nodep, sizeof(struct inode), 1,fp);
+    //return node;
+}
+
+/* already present in mkfs
+void write_inode_struct(FILE* fp, long inode_num, struct inode* nodep){
+    long curr_block = ((inode_num - 1) / (BLOCK_SIZE/INODE_SIZE)) + 1;
+    int offset = ((inode_num - 1) % (BLOCK_SIZE/INODE_SIZE)) * INODE_SIZE;
+    long pos = BLOCK_SIZE * curr_block + offset;
+    //struct inode node;
+    fseek(fp, pos, SEEK_SET);
+    fwrite(nodep, sizeof(struct inode), 1,fp);
+    //return node;
+}
+*/
+
+
+void free_inode(FILE* fp, long inumber){
+    if(inumber > 1 + NUM_INODES || inumber <1){
+        return;
+    }
+    // Make type=0 and write to disk - NO! it's duplicate
+    printf("<----------- FREEING INODE NO %ld ------------->\n", inumber);
+    //struct inode node;
+    //node.type = 0;
+    //write_inode(fp, inumber, &node);
+
+    // Update cached free inodes list in superblock
+    struct superblock * sb = &superblock;
+    int16_t index = sb->index_next_free_inode;
+    sb->num_free_inodes += 1;
+    if(index < FREE_INODES_LIST_SIZE-1){// List is not full
+        sb->list_free_inodes[index+1] = inumber;
+        sb->index_next_free_inode += 1;
+    }
+    else{// List is full, replace item [0] if it is larger then inumber
+        if(inumber < sb->list_free_inodes[0]){
+            sb->list_free_inodes[0] = inumber;
+        }
+    }
+
+}
 
 
 /*

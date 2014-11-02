@@ -20,5 +20,15 @@ int main(){
         printf("FREE BLOCK:%ld\n",num);
     }
 
+    struct inode node;
+
+    for(i = 1; i < 50; i++){
+        if(i%6==0) free_inode(fp, i-4);
+        num = get_free_inode(fp, &node);
+        printf("\tGOT FREE INODE NUM:%ld\n", num);
+    }
+
+    fclose(fp);
+
     return 0;
 }

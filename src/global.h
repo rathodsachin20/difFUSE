@@ -2,7 +2,7 @@
 #define __global_h__
 
 #define BLOCK_SIZE 64
-#define NUM_INODES 5
+#define NUM_INODES 15
 #define FS_MIN_SIZE 4096
 #define INODE_SIZE 32
 #define INODE_NUM_DIRECT_BLOCKS 10
@@ -33,7 +33,7 @@ struct inode{
     //unsigned inode_number; //may not be needed
     int owner_id;
     int group_id;
-    char type;
+    uint8_t type;
     int perms;
     float accessed;
     float file_modified;
