@@ -10,7 +10,7 @@
 void mkfs(const char* filepath){
     printf("IN FUNCION mkfs.\n");
     //FILE* fp = fopen(filepath, "w+");
-    FILE* fp = fopen(filepath, "a");
+    FILE* fp = fopen(filepath, "rw+");
     if(fp == NULL){
         printf("Error opening file: %s", filepath);
     } 
@@ -141,7 +141,30 @@ void initialize_free_blocks(long size_fs, FILE* fp){
         }
     fseek(fp, BLOCK_SIZE*i, SEEK_SET);
     fwrite(&free_list, sizeof(struct block_list), 1, fp);
+    fseek(fp, BLOCK_SIZE*i, SEEK_SET);
+    struct block_list mylist;
+    int bytes = fread(&mylist, 1, sizeof(struct block_list), fp);
+    if(ferror(fp))
+        perror("error ");
+    fflush(fp);
+    //printf("%d bytes read\n", bytes);
+    //printf("%ld****************\n", free_list.list[0]);
+    //printf("%ld****************\n", mylist.list[0]);
+
     }
+
+    /*printf("\n............CHECKING READ\n");
+    struct block_list llist;
+    fseek(fp, BLOCK_SIZE*start, SEEK_SET);
+    int bytes = fread(&llist, 1, sizeof(struct block_list), fp);
+    //if(bytes==0) perror("error.");
+    if(ferror(fp)) perror("error.");
+    printf("%d bytes read from block %ld\n", bytes, start);
+    printf("%ld--------------\n", *((long*)(&llist)));
+    for(i=0;i<num_entries;i++)
+        printf(":%ld\t",llist.list[i]);
+    printf("\n.............END CHECKING READ\n");
+    */
 
 
     /* Without using struct 

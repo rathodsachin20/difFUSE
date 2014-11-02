@@ -52,7 +52,7 @@ struct inode{
 *  Can be used in Free blocks list, indirect pointers
 */
 struct block_list{
-    long int list[BLOCK_SIZE/sizeof(long)];
+    long list[BLOCK_SIZE/sizeof(long)];
 };
 
 
