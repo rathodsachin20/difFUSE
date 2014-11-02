@@ -11,12 +11,13 @@ int main(){
     fclose(fp);
     mkfs("test.txt");
 
-    fp = fopen("test.txt", "r");
-    long num = get_free_block_num(fp);
+    fp = fopen("test.txt", "rw+");
+    long num;
     int i;
-    for(i = 0; i < 50; i++){
-        printf("FREE BLOCK:%ld\n",num);
+    for(i = 1; i < 50; i++){
+        if(i%11==0) free_block(fp, i-3);
         num = get_free_block_num(fp);
+        printf("FREE BLOCK:%ld\n",num);
     }
 
     return 0;

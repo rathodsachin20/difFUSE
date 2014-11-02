@@ -7,7 +7,7 @@
 #define INODE_SIZE 32
 #define INODE_NUM_DIRECT_BLOCKS 10
 #define INODE_NUM_INDIRECT_ADDRS 4
-#define FREE_BLOCKS_LIST_SIZE 10
+#define FREE_BLOCKS_LIST_SIZE 4
 #define FREE_INODES_LIST_SIZE 5
 #define NUM_INODE_BLOCKS (NUM_INODES * INODE_SIZE) / BLOCK_SIZE + 1
 #define is_bigendian() ( (*(char*)&i) == 0 )
