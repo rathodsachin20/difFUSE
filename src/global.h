@@ -16,7 +16,7 @@
 
 #include <fcntl.h>
 #include <stdio.h>
-//#include <fuse.h>
+#include <fuse.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -60,6 +60,6 @@ struct block_list{
 struct directory{
     long int inode_num[MAX_NUM_FILE];
     char name[MAX_NUM_FILE][MAX_FILE_NAME_LEN];
-}
+};
 
 #endif
