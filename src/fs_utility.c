@@ -13,13 +13,13 @@ long int fs_namei(FILE* fp, const char* filep){
 	get_inode_struct(fp, 1, &working_inode);
 	//long int block_num = working_inode->direct_blocks[0];
 	//get_block(fp, block_num);
-	struct directory* dr;
-	long int inode_num;
+	struct directory dr;
+	long int inode_num=0;
 	fread(&dr, sizeof(struct directory), 1, fp);
 	int i=0;
 	while(i<MAX_NUM_FILE){
-	    if( strcmp(fname,dr->name[i])==0 ){
-		inode_num = dr->inode_num[i];
+	    if( strcmp(fname,dr.name[i])==0 ){
+		inode_num = dr.inode_num[i];
 		break;
 	    }
 	}
