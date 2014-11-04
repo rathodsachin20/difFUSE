@@ -1,22 +1,45 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
-#include <fuse.h>
+#include "global.h"
 
-uint32_t fs_namei(const char* filepath){
-    char *fname;
+long int fs_namei(FILE* fp, char* filepath){
+    char* fname;
+    struct node* working_inode;  
+    fname = strtok(filepath,"/");
+    if(strcmp(filepath[0],"/")==0){
+	//start from root
+	get_inode_struct(fp, 1, &working_inode);
+	//long int block_num = working_inode->direct_blocks[0];
+	//get_block(fp, block_num);
+	struct directory* dr;
+	long int inode_num;
+	fread(&dr, sizeof(struct directory), 1, fp);
+	int i=0;
+	while(i<MAX_NUM_FILE){
+	    if( strcmp(fname,dr->name[i])==0 ){
+		inode_num = dr->inode_num[i];
+		break;
+	    }
+	}
+	return inode_num;
+    }
+}
+    /*
     fname = strtok(filepath,"/");
     while(fname != NULL){
         printf("fetching file.. %s\n",fname);
-        
+        //search for file starting from root
+	//
+	//if file not found then error.
         fname = strtok (NULL, "/");
     }
-    
+    num_inode = get_inode_n
     return num_inode;
 }
-//implement get_inode
 
-struct inode* get_inode();
+struct inode* get_inode(){
 
 //implement get_block
 //implement put_inode
+*/
