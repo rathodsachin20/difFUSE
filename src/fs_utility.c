@@ -22,6 +22,7 @@ long int fs_namei(FILE* fp, const char* filep){
 		inode_num = dr.inode_num[i];
 		break;
 	    }
+	    i++;
 	}
 	return inode_num;
     }
