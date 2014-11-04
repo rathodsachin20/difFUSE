@@ -1,6 +1,12 @@
 #ifndef __global_h__
 #define __global_h__
 
+#include <fcntl.h>
+#include <stdio.h>
+#include <fuse.h>
+#include <stdint.h>
+#include <stdlib.h>
+
 #define BLOCK_SIZE 64
 #define NUM_INODES 15
 #define FS_MIN_SIZE 4096
@@ -8,15 +14,12 @@
 #define INODE_NUM_DIRECT_BLOCKS 10
 #define INODE_NUM_INDIRECT_ADDRS 4
 #define FREE_BLOCKS_LIST_SIZE 4
-#define FREE_INODES_LIST_SIZE 5
+#define FREE_INODES_LIST_SIZE 20
 #define NUM_INODE_BLOCKS (NUM_INODES * INODE_SIZE) / BLOCK_SIZE + 1
 #define is_bigendian() ( (*(char*)&i) == 0 )
 
-#include <fcntl.h>
-#include <stdio.h>
-#include <fuse.h>
-#include <stdint.h>
-#include <stdlib.h>
+typedef int perm_t
+//typedef long int blocknum_t
 
 struct superblock{
     unsigned long size_fs;
@@ -34,7 +37,7 @@ struct inode{
     int owner_id;
     int group_id;
     uint8_t type;
-    int perms;
+    perm_t perms;
     float accessed;
     float file_modified;
     float inode_modified;

@@ -156,10 +156,10 @@ long get_free_inode(FILE* fp, struct inode* nodep){
     int16_t index = sb->index_next_free_inode;
     struct inode curr_inode;
 
-    printf("INDEX=%d..", index);
+    //printf("INDEX=%d..", index);
     inode_num = sb->list_free_inodes[index];
     if(inode_num==0){
-        printf("NO MORE INODES AVAILABLE!");
+        printf("NO MORE INODES AVAILABLE!\t");
         return 0;
     }
     if(index > 0){
@@ -169,30 +169,35 @@ long get_free_inode(FILE* fp, struct inode* nodep){
     else{ //index=0, return this node, update list in superblock, update index
         //inode_num = sb->list_free_inodes[0];
         long curr_inode_num = inode_num + 1;
-        int16_t curr_index = FREE_INODES_LIST_SIZE-1;
-        if(curr_inode_num >= NUM_INODES){
-            printf("NO MORE INODES AVAILABLE!");
+        if(curr_inode_num == NUM_INODES){ // This is last free inode
+            printf("GIVING LAST INODE! :(\n");
+            sb->list_free_inodes[index] = 0;
+        }
+        else if(curr_inode_num > NUM_INODES){ //
+            printf("NO MORE INODES AVAILABLE!\t");
             return 0;
         }
         else{
             sb->index_next_free_inode = FREE_INODES_LIST_SIZE-1;
-        }
-        // Get new inodes
-        while(curr_inode_num < NUM_INODES){
-            printf("Curr_inode_num=%ld\n", curr_inode_num);
-            if(curr_index < 0)
-                break;
-            get_inode_struct(fp, curr_inode_num, &curr_inode);
-            if(curr_inode.type == 0){
-                sb->list_free_inodes[curr_index] = curr_inode_num;
-                curr_index--;
-            }
-            curr_inode_num++;
-            if(curr_inode_num == NUM_INODES){
-                printf("Last inode added. curr_index=%d\n",curr_index);
-                int i;
-                for(; curr_index>=0; curr_index--){
-                    sb->list_free_inodes[curr_index] = 0;                    
+            int16_t curr_index = FREE_INODES_LIST_SIZE-1;
+            // Get new inodes
+            while(curr_inode_num < NUM_INODES){
+                //printf("Curr_inode_num=%ld\n", curr_inode_num);
+                if(curr_index < 0)
+                    break;
+                get_inode_struct(fp, curr_inode_num, &curr_inode);
+                if(curr_inode.type == 0){
+                    //printf("Free inode_num=%ld\n", curr_inode_num);
+                    sb->list_free_inodes[curr_index] = curr_inode_num;
+                    curr_index--;
+                }
+                curr_inode_num++;
+                if(curr_inode_num == NUM_INODES){
+                    //printf("Last inode added. curr_index=%d\n",curr_index);
+                    int i;
+                    for(; curr_index>=0; curr_index--){
+                        sb->list_free_inodes[curr_index] = 0;                    
+                    }
                 }
             }
         }
@@ -200,7 +205,7 @@ long get_free_inode(FILE* fp, struct inode* nodep){
     get_inode_struct(fp, inode_num, nodep);
     nodep->type = 1;
     write_inode(fp, inode_num, nodep);
-    printf("You got inode no. %ld\n", inode_num);
+    printf("Giving inode no. %ld\t", inode_num);
     sb->num_free_inodes -= 1;
     return inode_num;
 }
@@ -247,9 +252,14 @@ void free_inode(FILE* fp, long inumber){
         sb->list_free_inodes[index+1] = inumber;
         sb->index_next_free_inode += 1;
     }
-    else{// List is full, replace item [0] if it is larger then inumber
+    else{// List is full, replace item [0] if it is larger than inumber
         if(inumber < sb->list_free_inodes[0]){
             sb->list_free_inodes[0] = inumber;
+        }
+        else{ // inode not entered in cached list, need to write back to disk
+            struct inode node;
+            node.type = 0;
+            write_inode(fp, inumber, &node);    
         }
     }
 

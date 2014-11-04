@@ -25,7 +25,8 @@ int main(){
     for(i = 1; i < 50; i++){
         if(i%6==0) free_inode(fp, i-4);
         num = get_free_inode(fp, &node);
-        printf("\tGOT FREE INODE NUM:%ld\n", num);
+        if(num) printf("\tGOT FREE INODE NUM:%ld\n", num);
+        else printf("\tNO INODE GIVEN\n.");
     }
 
     fclose(fp);
