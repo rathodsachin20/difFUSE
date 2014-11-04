@@ -4,6 +4,7 @@
 #include "global.h"
 #include <fuse.h>
 #include <fuse_common.h>
+#include <time.h>
 
 int fs_getattr(const char *filepath, struct stat *st){
     struct node* inode = get_inode(filepath);
@@ -27,16 +28,16 @@ int fs_create(const char *filepath, mode_t mode, struct fuse_file_info *, FILE* 
 	return ENOENT; //have to check how to return error number
     //using namei find the directory and the data block to write into
     //namei(fp,filepath);
-    
-    struct inode* nodep=NULL;
-    int inode_num = get_free_inode(fp, nodep);
-    get_inode_struct(fp, inode_num, nodep);
-    nodep->ownder_id = ;
-    nodep->group_id = ;
-    nodep->type = ;
-    nodep->file_modified = time(0);
-    nodep-> direct_blocks[0] = get_free_block_num(fp);
-    
+    struct inode nodep;
+    int inode_num = get_free_inode(fp, &nodep);
+    get_inode_struct(fp, inode_num, &nodep);
+    nodep.ownder_id = 1 ;
+    nodep.group_id = 1;
+    nodep.type = 1;
+    nodep.file_modified = time(0);
+    nodep.direct_blocks[0] = get_free_block_num(fp);
+    write_inode(fp, inode_num, &nodep);
+    return 0;
 }
 
 //don't know if mknod needs to be implemented or create is sufficient!
