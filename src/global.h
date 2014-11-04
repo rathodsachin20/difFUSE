@@ -16,7 +16,7 @@
 
 #include <fcntl.h>
 #include <stdio.h>
-#include <fuse.h>
+//#include <fuse.h>
 #include <stdint.h>
 #include <stdlib.h>
 

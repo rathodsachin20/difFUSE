@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
-#include <fuse.h>
 
 
 long int fs_namei(FILE* fp, const char* filepath){
@@ -11,7 +10,7 @@ long int fs_namei(FILE* fp, const char* filepath){
     if(filepath[0] == "/"){
 	//start from root
 	get_inode_struct(fp, 1, &working_inode);
-	long int block_num = working_inode->direct_blocks[0];
+	//long int block_num = working_inode->direct_blocks[0];
 	//get_block(fp, block_num);
 	struct directory* dr;
 	long int inode_num;
