@@ -31,7 +31,7 @@ int fs_create(const char *filepath, mode_t mode, struct fuse_file_info *, FILE* 
     struct inode nodep;
     int inode_num = get_free_inode(fp, &nodep);
     get_inode_struct(fp, inode_num, &nodep);
-    nodep.ownder_id = 1 ;
+    nodep.ownder_id = 121 ;
     nodep.group_id = 1;
     nodep.type = 1;
     nodep.file_modified = time(0);
@@ -72,9 +72,10 @@ int fs_open(const char* filepath, struct fuse_file_info* ffi, FILE* fp){
 }
 
 int fs_read(const char *filepath, char *buf, size_t count, off_t offset, struct fuse_file_info * ffi, FILE* fp){
-    //check if user has permission to read
+    /*check if user has permission to read
     if(inode->file_size < offset)
 	return error;
+	*/
     long int inode_num = 0, block_num=0;
     inode_num = fs_namei(fp, filepath);
     if(inode_num == 0)
