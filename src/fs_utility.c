@@ -3,9 +3,10 @@
 #include <string.h>
 #include "global.h"
 
-long int fs_namei(FILE* fp, char* filepath){
+long int fs_namei(FILE* fp, const char* filep){
     char* fname;
     struct node* working_inode;  
+    char * filepath = filep;
     fname = strtok(filepath,"/");
     if(strcmp(filepath[0],"/")==0){
 	//start from root
