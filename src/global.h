@@ -10,6 +10,8 @@
 #define FREE_BLOCKS_LIST_SIZE 4
 #define FREE_INODES_LIST_SIZE 5
 #define NUM_INODE_BLOCKS (NUM_INODES * INODE_SIZE) / BLOCK_SIZE + 1
+#define MAX_NUM_FILE 32
+#define MAX_FILE_NAME_LEN 32
 #define is_bigendian() ( (*(char*)&i) == 0 )
 
 #include <fcntl.h>
@@ -55,5 +57,9 @@ struct block_list{
     long list[BLOCK_SIZE/sizeof(long)];
 };
 
+struct directory{
+    long int inode_num[MAX_NUM_FILE];
+    char name[MAX_NUM_FILE][MAX_FILE_NAME_LEN];
+}
 
 #endif
