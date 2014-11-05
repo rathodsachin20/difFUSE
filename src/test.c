@@ -1,5 +1,7 @@
 #include "mkfs1.c"
-#include "fsutil.c"
+//#include "fsutil.c"
+#include "fs.c"
+#include "fs_func.c"
 
 int main(){
     int size = 1024*10;
@@ -12,22 +14,28 @@ int main(){
     mkfs("test.txt");
 
     fp = fopen("test.txt", "rw+");
-    long num;
+    /*long num;
     int i;
     for(i = 1; i < 50; i++){
         if(i%11==0) free_block(fp, i-3);
         num = get_free_block_num(fp);
         printf("FREE BLOCK:%ld\n",num);
-    }
+    }*/
 
     struct inode node;
 
-    for(i = 1; i < 50; i++){
+    /*for(i = 1; i < 50; i++){
         if(i%6==0) free_inode(fp, i-4);
         num = get_free_inode(fp, &node);
         if(num) printf("\tGOT FREE INODE NUM:%ld\n", num);
         else printf("\tNO INODE GIVEN\n.");
-    }
+    }*/
+    mode_t mode;
+    struct fuse_file_info;
+    char text[] = "Hello world";
+
+    fs_create("/tt.txt", mode, NULL, fp );
+    fs_write("/tt.txt", 0, text, 11, fp);
 
     fclose(fp);
 

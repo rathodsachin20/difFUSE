@@ -1,3 +1,6 @@
+#ifndef __fs_utility_c__
+#define __fs_utility_c__
+
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
@@ -5,10 +8,13 @@
 
 long int fs_namei(FILE* fp, const char* filep){
     char* fname;
-    struct node* working_inode;  
-    char * filepath = filep;
+    struct inode working_inode;  
+    char * filepath;
+    int len = strlen(filep);
+    filepath = (char*) malloc(sizeof(char)*len);
+    strcpy(filepath, filep);
     fname = strtok(filepath,"/");
-    if(strcmp(filepath[0],"/")==0){
+    if(strncmp(&filepath[0],"/",1)==0){
 	//start from root
 	get_inode_struct(fp, 1, &working_inode);
 	//long int block_num = working_inode->direct_blocks[0];
@@ -45,3 +51,5 @@ struct inode* get_inode(){
 //implement get_block
 //implement put_inode
 */
+
+#endif

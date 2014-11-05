@@ -20,7 +20,7 @@
 #define MAX_FILE_NAME_LEN 32
 #define is_bigendian() ( (*(char*)&i) == 0 )
 
-typedef int perm_t
+//typedef int perm_t;
 //typedef long int blocknum_t
 
 struct superblock{
@@ -39,7 +39,8 @@ struct inode{
     int owner_id;
     int group_id;
     uint8_t type;
-    perm_t perms;
+    //perm_t perms;
+    int16_t perms;
     float accessed;
     float file_modified;
     float inode_modified;

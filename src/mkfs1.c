@@ -95,7 +95,7 @@ void initalize_inodes(FILE* fp){
 }
 
 void write_inode(FILE* fp, long inumber, struct inode* inodep){
-    printf("IN FUNCION write_inode.\n");
+    //printf("IN FUNCION write_inode.\n");
     // Position to seek. Inode number start from 1
     long block_num = ((inumber - 1) / (BLOCK_SIZE / INODE_SIZE)) + 1; //get blk num to write inode in
     short offset = ((inumber - 1) % (BLOCK_SIZE / INODE_SIZE)) * INODE_SIZE; //get offset in that blk
@@ -108,11 +108,11 @@ void write_inode(FILE* fp, long inumber, struct inode* inodep){
 *  
 */ 
 void initialize_free_blocks(long size_fs, FILE* fp){
-    printf("IN FUNCION initialize_free_blocks.\n");
+    //printf("IN FUNCION initialize_free_blocks.\n");
     long start = 1 + NUM_INODE_BLOCKS;
     //long current  = start;
     long num_blocks = size_fs / BLOCK_SIZE;
-    printf("num_blocks=%ld\n", num_blocks);
+    //printf("num_blocks=%ld\n", num_blocks);
     int num_entries = BLOCK_SIZE / sizeof(long);
 
     struct block_list free_list;
@@ -121,14 +121,14 @@ void initialize_free_blocks(long size_fs, FILE* fp){
         if(i <= num_blocks-num_entries){
             for(j=0; j<num_entries; j++){
                 free_list.list[j] = i-j+num_entries;
-                printf("Entry: Block[%d][%d]=%ld\t", i, j, free_list.list[j]);
+                //printf("Entry: Block[%d][%d]=%ld\t", i, j, free_list.list[j]);
             }
         }
         else{
             for(j=0; j<num_entries; j++){
                 long value = i-j+num_entries;
                 free_list.list[j] = (value <= num_blocks ? value : 0);
-                printf("Entry: Block[%d][%d]=%ld\t", i, j, free_list.list[j]);
+                //printf("Entry: Block[%d][%d]=%ld\t", i, j, free_list.list[j]);
             }
 
         }
