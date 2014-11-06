@@ -1,5 +1,5 @@
-//#ifndef __fsutil_c__
-//#define __fsutil_c__
+#ifndef __fsutil_c__
+#define __fsutil_c__
 
 #include "fsutil.h"
 
@@ -335,4 +335,4 @@ long int get_free_inode(FILE * fp, long int inode_num, struct node* inodep){
 
          */
 
-//#endif
+#endif

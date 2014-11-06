@@ -102,7 +102,7 @@ void write_inode(FILE* fp, long inumber, struct inode* inodep){
     long pos = (block_num * BLOCK_SIZE) + offset; //get exact pos to begin writing
     fseek(fp, pos, SEEK_SET);
     fwrite(inodep, sizeof(struct inode), 1, fp); //fputs??
-    //fflush(fp);   -- IS THIS NEEDED?
+    fflush(fp);   //-- IS THIS NEEDED?
 }
 /* Initialize list of free blocks. Fill link data blocks with entries for free blocks.
 *  

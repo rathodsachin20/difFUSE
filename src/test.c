@@ -4,7 +4,7 @@
 #include "fs_func.c"
 
 int main(){
-    int size = 1024*10;
+    int size = 1024*100;
     FILE * fp = fopen("test.txt", "w+");
     fseek(fp, size, SEEK_SET);
     fputc('\n', fp);
@@ -33,9 +33,10 @@ int main(){
     mode_t mode;
     struct fuse_file_info;
     char text[] = "Hello world";
-
+printf("11th:%c...\n", text[11]);
+    fs_create_dir("/", mode, NULL, fp); // Move creation of root dir to mkfs
     fs_create("/tt.txt", mode, NULL, fp );
-    fs_write("/tt.txt", 0, text, 11, fp);
+    //fs_write("/tt.txt", 0, text, 11, fp);
 
     fclose(fp);
 

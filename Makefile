@@ -9,7 +9,7 @@ LDFLAGS = -D_FILE_OFFSET_BITS=64
 #SSOURCES = temp.c temp1.c
 #SOURCES = $(patsubst %, $(SRCDIR)/%, $(SSOURCES))
 ##OOBJ = $(SSOURCES:.c=.o)
-OOBJ = temp.o temp1.o
+OOBJ = test.o
 OBJ = $(patsubst %, $(OBJDIR)/%, $(OOBJ))
 #DDEPS = temp.h
 #DEPS = $(patsubst %, $(INCDIR)/%, $(DDEPS))
@@ -39,3 +39,5 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.c
 clean:
 	rm -rf $(OBJDIR)/*.o
 	rm -rf $(BINDIR)/*
+	rm test.txt
+
