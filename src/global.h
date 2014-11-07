@@ -6,6 +6,8 @@
 #include <fuse.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <errno.h>
+#include <sys/stat.h>
 
 #define BLOCK_SIZE 64
 #define NUM_INODES 15
@@ -19,9 +21,6 @@
 #define MAX_NUM_FILE 32
 #define MAX_FILE_NAME_LEN 32
 #define is_bigendian() ( (*(char*)&i) == 0 )
-
-//typedef int perm_t;
-//typedef long int blocknum_t
 
 struct superblock{
     unsigned long size_fs;
