@@ -22,46 +22,49 @@
 #define MAX_FILE_NAME_LEN 32
 #define is_bigendian() ( (*(char*)&i) == 0 )
 
+typedef unsigned long dtype;
+
 struct superblock{
-    unsigned long size_fs;
-    unsigned num_free_blocks;
-    unsigned long list_free_blocks[FREE_BLOCKS_LIST_SIZE];
-    int16_t index_next_free_block;
-    //struct inode **list_free_inodes;
-    unsigned long list_free_inodes[FREE_INODES_LIST_SIZE];
-    int16_t index_next_free_inode;
-    unsigned num_free_inodes; //Total num of free inodes
+    dtype size_fs;
+    
+    dtype num_free_blocks;
+    dtype list_free_blocks[FREE_BLOCKS_LIST_SIZE];
+    dtype index_next_free_block;
+    
+    dtype list_free_inodes[FREE_INODES_LIST_SIZE];
+    dtype index_next_free_inode;
+    dtype num_free_inodes;
+    
+    bool is_locked;
 }superblock;
 
 struct inode{
     //unsigned inode_number; //may not be needed
     int owner_id;
     int group_id;
-    uint8_t type;
-    //perm_t perms;
-    int16_t perms;
+    int type;
     float accessed;
     float file_modified;
     float inode_modified;
-    // ? file_links;
-    long int file_size;
+    dtype links_count;
+    dtype file_size;
     // ? long int size_partition;
     // ? bool file_is_locked;
-    long int direct_blocks[INODE_NUM_DIRECT_BLOCKS];
-    long int single_indirect_block;
-    long int double_indirect_block;
-    long int triple_indirect_block;
+    dtype direct_blocks[INODE_NUM_DIRECT_BLOCKS];
+    dtype single_indirect_block;
+    dtype double_indirect_block;
+    dtype triple_indirect_block;
 };
 
 /* List of block ids to be stored in a block.
 *  Can be used in Free blocks list, indirect pointers
 */
 struct block_list{
-    long list[BLOCK_SIZE/sizeof(long)];
+    dtype list[BLOCK_SIZE/sizeof(long)];
 };
 
 struct directory{
-    long int inode_num[MAX_NUM_FILE];
+    dtype inode_num[MAX_NUM_FILE];
     char name[MAX_NUM_FILE][MAX_FILE_NAME_LEN];
 };
 
