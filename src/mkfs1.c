@@ -78,7 +78,7 @@ void initalize_inodes(FILE* fp){
         inode.owner_id = -1;
         inode.group_id = -1;
         inode.type = (char)0;
-        inode.perms = (int)0;
+        inode.perms = (int16_t)0;
         inode.accessed = 0.0;
         inode.file_modified = 0.0;
         inode.inode_modified = 0.0;

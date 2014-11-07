@@ -3,7 +3,7 @@ BINDIR = ./bin
 SRCDIR = ./src
 INCDIR = ./include
 
-CC = gcc
+CC = gcc -I$(INCDIR)
 CFLAGS = -D_FILE_OFFSET_BITS=64
 LDFLAGS = -D_FILE_OFFSET_BITS=64
 #SSOURCES = temp.c temp1.c
@@ -39,5 +39,5 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.c
 clean:
 	rm -rf $(OBJDIR)/*.o
 	rm -rf $(BINDIR)/*
-	rm test.txt
+	rm -rf test.txt
 
