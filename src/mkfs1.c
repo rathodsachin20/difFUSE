@@ -1,4 +1,5 @@
 #include "mkfs1.h"
+#include "layer0.c"
 
 void mkfs(const char* filepath){
     printf("IN FUNCION mkfs.\n");
@@ -19,7 +20,7 @@ void mkfs(const char* filepath){
     initialize_free_blocks(superblock.size_fs, fp);
 
     // write superblock struct to disk after getting all parameters filled
-    write_superblock();  //looks like this is not needed, we can write it in initialization itself.
+    //write_superblock();  //looks like this is not needed, we can write it in initialization itself.
 
     fclose(fp);
 }
@@ -51,8 +52,7 @@ void initialize_superblock(FILE* fp){
 
     sb->num_free_inodes = NUM_INODES;
 
-    fseek(fp, 0, SEEK_SET);
-    fwrite(&superblock, sizeof(struct superblock), 1, fp);
+    put_block(&superblock, 0, 0, sizeof(struct superblock), fp);
 
 }
 
@@ -97,12 +97,10 @@ void initalize_inodes(FILE* fp){
 void write_inode(FILE* fp, long inumber, struct inode* inodep){
     //printf("IN FUNCION write_inode.\n");
     // Position to seek. Inode number start from 1
-    long block_num = ((inumber - 1) / (BLOCK_SIZE / INODE_SIZE)) + 1; //get blk num to write inode in
+    long block_no = ((inumber - 1) / (BLOCK_SIZE / INODE_SIZE)) + 1; //get blk num to write inode in
     short offset = ((inumber - 1) % (BLOCK_SIZE / INODE_SIZE)) * INODE_SIZE; //get offset in that blk
-    long pos = (block_num * BLOCK_SIZE) + offset; //get exact pos to begin writing
-    fseek(fp, pos, SEEK_SET);
-    fwrite(inodep, sizeof(struct inode), 1, fp); //fputs??
-    fflush(fp);   //-- IS THIS NEEDED?
+    put_block(inodep, block_no, offset, sizeof(struct inode), fp);
+
 }
 /* Initialize list of free blocks. Fill link data blocks with entries for free blocks.
 *  
@@ -132,14 +130,10 @@ void initialize_free_blocks(long size_fs, FILE* fp){
             }
 
         }
-    fseek(fp, BLOCK_SIZE*i, SEEK_SET);
-    fwrite(&free_list, sizeof(struct block_list), 1, fp);
-    fseek(fp, BLOCK_SIZE*i, SEEK_SET);
-    struct block_list mylist;
-    int bytes = fread(&mylist, 1, sizeof(struct block_list), fp);
-    if(ferror(fp))
-        perror("error ");
-    fflush(fp);
+    put_block(&free_list, i, 0, sizeof(struct block_list), fp);
+    //fseek(fp, BLOCK_SIZE*i, SEEK_SET);
+    //struct block_list mylist;
+    //int bytes = fread(&mylist, 1, sizeof(struct block_list), fp);
     //printf("%d bytes read\n", bytes);
     //printf("%ld****************\n", free_list.list[0]);
     //printf("%ld****************\n", mylist.list[0]);
@@ -181,10 +175,4 @@ void initialize_free_blocks(long size_fs, FILE* fp){
 
 }
 
-/* Write superblock struck to the disk after getting all the parameters filled.
-*/
-void write_superblock(){
-    printf("IN FUNCION write_superblock.\n");
-
-}
 
