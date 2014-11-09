@@ -1,5 +1,5 @@
 #include "mkfs1.h"
-#include "layer0.c"
+//#include "layer0.c"
 
 void mkfs(const char* filepath){
     printf("IN FUNCION mkfs.\n");

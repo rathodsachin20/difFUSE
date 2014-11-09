@@ -1,7 +1,7 @@
-#include "mkfs1.c"
+//#include "mkfs1.h"
 //#include "fsutil.c"
-#include "fs.c"
-#include "fs_func.c"
+#include "layer2.h"
+//#include "fs_func.c"
 
 int main(){
     int size = 1024*100;

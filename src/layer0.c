@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "global.h"
+#include "layer0.h"
 
 /* Layer 0 is the interface to the disk. It implements block abstraction.
 *  All requests to disk should go through layer 0.

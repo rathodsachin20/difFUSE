@@ -1,7 +1,7 @@
 #ifndef __mkfs_h__
 #define __mkfs_h__
 
-#include "global.h"
+#include "layer0.h"
 
 void mkfs(const char* filepath);
 void initialize_superblock(FILE* fp);
@@ -14,4 +14,4 @@ void write_superblock();
 
 
 
-#endif
+#endif /* __mkfs_h__ */

@@ -9,7 +9,7 @@ LDFLAGS = -D_FILE_OFFSET_BITS=64
 #SSOURCES = temp.c temp1.c
 #SOURCES = $(patsubst %, $(SRCDIR)/%, $(SSOURCES))
 ##OOBJ = $(SSOURCES:.c=.o)
-OOBJ = test.o
+OOBJ = layer0.o mkfs1.o layer1.o layer2.o test.o
 OBJ = $(patsubst %, $(OBJDIR)/%, $(OOBJ))
 #DDEPS = temp.h
 #DEPS = $(patsubst %, $(INCDIR)/%, $(DDEPS))
@@ -19,7 +19,8 @@ all: $(BINDIR)/exec
 #$(EXEC): $(OBJ) 
 #	$(CC) $(LDFLAGS) $(OBJ) -o $@
 $(BINDIR)/exec: $(OBJ)
-	$(CC) $(LDFLAGS) $^ -o $@
+#	$(CC) $(LDFLAGS) $^ -o $@ $(BINDIR)/exec
+	$(CC) $(LDFLAGS) $(OBJ) -o $(BINDIR)/exec
 
 #$(OBJDIR)/%.o: $(SRCDIR)/%.c $(DEPS)
 #	$(CC) -c $(CFLAGS) -o $@ $<
