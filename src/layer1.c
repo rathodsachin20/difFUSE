@@ -151,11 +151,6 @@ void update_free_blocks_list(struct superblock* sb, long block_num, FILE* fp){
     
 }
 
-long get_free_block_offset(FILE* fp){
-    long block_num = get_free_block_num(fp);
-    return BLOCK_SIZE * block_num;
-}
-
 
 long get_file_block_num(long offset, struct inode node, int* block_pos, FILE* fp){
     long block_num;

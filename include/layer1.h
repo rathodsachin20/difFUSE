@@ -16,8 +16,6 @@ void write_free_list_block(FILE* fp, long block_num, struct block_list* bl);
 //void get_new_free_blocks_list(int ** newlist, long block_num, FILE* fp);
 void update_free_blocks_list(struct superblock* sb, long block_num, FILE* fp);
 
-long get_free_block_offset(FILE* fp);
-
 long get_file_block_num(long offset, struct inode node, int* block_pos, FILE* fp);
 
 void free_block(FILE* fp, long block_num);
