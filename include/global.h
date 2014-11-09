@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <sys/stat.h>
+#include <time.h>
 
 #define BLOCK_SIZE 512
 #define NUM_INODES 15
