@@ -20,4 +20,11 @@ void get_inode_struct(FILE* fp, long inode_num, struct inode* nodep);
 
 void write_inode_struct(FILE* fp, long inode_num, struct inode* nodep);
 
+
+int fs_write(const char* filepath, long offset, const char* buffer, long size, FILE* fp);
+
+//int fs_read(const char* filepath, long offset, char* buffer, long size, FILE* fp);
+
+long get_file_block_num(long offset, struct inode node, int* block_pos, FILE* fp);
+
 #endif
