@@ -2,6 +2,32 @@
 
 #include "layer2.h"
 
+long get_file_block_num(long offset, struct inode node, int* block_pos, FILE* fp){
+    long block_num;
+    int n = BLOCK_SIZE / sizeof(long); // Number of entries per blocks
+    if(offset < BLOCK_SIZE * INODE_NUM_DIRECT_BLOCKS){
+        block_num = node.direct_blocks[offset / BLOCK_SIZE];
+        *block_pos = block_num;
+        if(block_num == 0){
+            block_num = get_free_block_num(fp);
+            // Update Inode entry for block
+            node.direct_blocks[*block_pos] = block_num;
+        }
+    }
+    else // TODO:Single Indirect
+        if(offset < BLOCK_SIZE * (INODE_NUM_DIRECT_BLOCKS + n)){
+            block_num = 0;
+        }
+        else
+            if(offset < BLOCK_SIZE * (INODE_NUM_DIRECT_BLOCKS + n + n*n)){ // TODO: Double indirect
+                block_num = 0;
+            }
+            else{ // TODO: Triple Indirect
+                block_num = 0;
+            }
+}
+
+
 //int add_inode_entry(const char* filepath, long file_inum, FILE* fp){
 void add_inode_entry(const char* filepath, long file_inum, FILE* fp){
     printf("\tin add_inode_entry\n");
@@ -54,7 +80,7 @@ long get_parent_inode_num(const char* filepath, FILE* fp){
 long int fs_namei(FILE* fp, const char* filep){
     char* fname;
     struct inode working_inode;
-    char * filepath;
+    char* filepath;
     int len = strlen(filep);
     long int inode_num = 0;
     
@@ -63,28 +89,36 @@ long int fs_namei(FILE* fp, const char* filep){
     fname = strtok(filepath,"/");
     
     if(strncmp(&filepath[0],"/",1)==0){
-        printf("in fs_namei: path starts with root.");
-        //start from root
-        get_inode_struct(fp, 1, &working_inode);
-        //long int block_num = working_inode->direct_blocks[0];
-        //get_block(fp, block_num);
-        struct directory dr;
-        long block_num = working_inode.direct_blocks[0];
-        if(block_num == 0){
-            printf("NO SUCH FILE!");
-            return 0;
-        }
-        fseek(fp, BLOCK_SIZE*block_num, SEEK_SET);
-        fread(&dr, sizeof(struct directory), 1, fp);
-        int i=0;
-        while(i<MAX_NUM_FILE){
-            printf("dir file:%s\n", dr.name[i]);
-            if( strcmp(fname,dr.name[i])==0 ){
-                inode_num = dr.inode_num[i];
-                break;
-            }
-            i++;
-        }
+	printf("in fs_namei: path starts with root.");
+	while(fname != NULL){
+	    get_inode_struct(fp, 1, &working_inode);
+	    //get_block(fp, block_num);
+	    struct directory dr;
+	   //loop through the direct blocks to find name
+	   int n = DIRECT_BLOCK_NUM;
+	   while(n--){
+		long block_num = working_inode.direct_blocks[n-1];
+		if(block_num == 0){
+		    printf("NO SUCH FILE!");
+		    return 0;
+		}
+		get_block(&dr, block_num, fp);
+		int i;
+		for(i=0;i<MAX_NUM_FILE;i++){
+		    printf("dir file:%s\n", dr.name[i]);
+		    if( strcmp(fname,dr.name[i])==0 ){
+			inode_num = dr.inode_num[i];
+			break;
+	            }
+		}
+	    }
+	    fname = strtok(NULL,"/");
+	}
+    }
+    else{
+	printf("in fs_namei: path starts from current dir %s",fname);
+	//get curr dir inode ./ 
+	//how to access this inode
     }
     printf("In fs_namei: %s: path not found\n", filepath);
     return inode_num;
@@ -92,7 +126,7 @@ long int fs_namei(FILE* fp, const char* filep){
 
 int fs_create(const char *filepath, mode_t mode, struct fuse_file_info * ffi, FILE* fp){
     if(filepath == NULL)
-        return -1; //have to check how to return error number
+        return -1; 
     //using namei find the directory and the data block to write into
     //namei(fp,filepath);
     
