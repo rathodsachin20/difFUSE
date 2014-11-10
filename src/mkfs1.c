@@ -52,7 +52,7 @@ void initialize_superblock(FILE* fp){
 
     sb->num_free_inodes = NUM_INODES;
 
-    put_block(&superblock, 0, 0, sizeof(struct superblock), fp);
+    write_block(&superblock, 0, 0, sizeof(struct superblock), fp);
 
 }
 
@@ -99,7 +99,7 @@ void write_inode(FILE* fp, long inumber, struct inode* inodep){
     // Position to seek. Inode number start from 1
     long block_no = ((inumber - 1) / (BLOCK_SIZE / INODE_SIZE)) + 1; //get blk num to write inode in
     short offset = ((inumber - 1) % (BLOCK_SIZE / INODE_SIZE)) * INODE_SIZE; //get offset in that blk
-    put_block(inodep, block_no, offset, sizeof(struct inode), fp);
+    write_block(inodep, block_no, offset, sizeof(struct inode), fp);
 
 }
 /* Initialize list of free blocks. Fill link data blocks with entries for free blocks.
@@ -130,7 +130,7 @@ void initialize_free_blocks(long size_fs, FILE* fp){
             }
 
         }
-    put_block(&free_list, i, 0, sizeof(struct block_list), fp);
+    write_block(&free_list, i, 0, sizeof(struct block_list), fp);
     //fseek(fp, BLOCK_SIZE*i, SEEK_SET);
     //struct block_list mylist;
     //int bytes = fread(&mylist, 1, sizeof(struct block_list), fp);
