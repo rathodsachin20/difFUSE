@@ -22,12 +22,13 @@
 #define NUM_INODE_BLOCKS (NUM_INODES * INODE_SIZE) / BLOCK_SIZE + 1
 #define MAX_NUM_FILE 10 
 #define MAX_FILE_NAME_LEN 32
+#define NAMEI_ENTRY_SIZE 32 // block size should be multiple of this
 //#define is_bigendian() ( (*(char*)&i) == 0 )
 
 typedef unsigned long block_num;
 typedef int8_t bool;
 #define true 1
-#define false 1
+#define false 0
 
 struct superblock{
     unsigned long size_fs;
@@ -70,8 +71,8 @@ struct block_list{
 };
 
 struct directory{
-    block_num inode_num[MAX_NUM_FILE];
-    char name[MAX_NUM_FILE][MAX_FILE_NAME_LEN];
+    block_num inode_num[BLOCK_SIZE/NAMEI_ENTRY_SIZE];
+    char name[BLOCK_SIZE/NAMEI_ENTRY_SIZE][NAMEI_ENTRY_SIZE - sizeof(block_num)];
 };
 
 #endif
