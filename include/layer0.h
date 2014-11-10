@@ -9,6 +9,6 @@
 
 void get_block(void* buffer, block_num num, FILE* fp);
 
-void put_block(const void* buffer, block_num num, int offset, int size, FILE* fp);
+void put_block(const void* buffer, block_num num, FILE* fp);
 
 #endif /* __layer0_h__ */
