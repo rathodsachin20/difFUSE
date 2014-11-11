@@ -36,7 +36,10 @@ int main(){
 printf("11th:%c...\n", text[11]);
     fs_create_dir("/", mode, NULL, fp); // Move creation of root dir to mkfs
     fs_create("/tt.txt", mode, NULL, fp );
-    //fs_write("/tt.txt", 0, text, 11, fp);
+    fs_write("/tt.txt", 0, text, 11, fp);
+    char read_buff[15];
+    fs_read("/tt.txt", read_buff, 11, 0, NULL, fp);
+    printf("FILE CONTENTS:%s\n", read_buff);
 
     fclose(fp);
 

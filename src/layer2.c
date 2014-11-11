@@ -141,6 +141,7 @@ int fs_create(const char *filepath, mode_t mode, struct fuse_file_info * ffi, FI
     
     // Make entry in parent dir
     add_inode_entry(filepath, inode_num, fp);
+    printf("File Created.\n");
     return 0;
 }
 
@@ -207,6 +208,7 @@ int fs_write(const char* filepath, long offset, const char* buffer, long size, F
     //struct fuse_file_info  ffi = NULL; // TODO: Change this to incoming parameter
     
     // Write expects file to be already created
+    printf("File name:%s inode:%ld\n", filepath, inode_num);
     if(inode_num == 0){
         //fs_create(filepath, mode, ffi, fp);
         //inode_num = fs_namei(fp, filepath);
@@ -225,7 +227,7 @@ int fs_write(const char* filepath, long offset, const char* buffer, long size, F
     fflush(fp);
     
     write_inode(fp, inode_num, &node);
-    
+    printf("file write complete.\n");
     return 0;
 }
 

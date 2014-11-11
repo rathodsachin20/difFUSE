@@ -16,6 +16,7 @@ block_num allocate_inode(FILE* fp, struct inode* nodep){
     }
     if(index > 0){
         // return node at index, update index
+        sb->list_free_inodes[index] = 0;
         sb->index_next_free_inode -= 1;
     }
     else{ //index=0, return this node, update list in superblock, update index
@@ -30,8 +31,9 @@ block_num allocate_inode(FILE* fp, struct inode* nodep){
             return 0;
         }
         else{
-            sb->index_next_free_inode = FREE_INODES_LIST_SIZE-1;
+            sb->list_free_inodes[index] = 0;
             int16_t curr_index = FREE_INODES_LIST_SIZE-1;
+            sb->index_next_free_inode = curr_index;
             // Get new inodes
             while(curr_inode_num < NUM_INODES){
                 //printf("Curr_inode_num=%ld\n", curr_inode_num);
@@ -161,7 +163,7 @@ void free_block(FILE* fp, block_num block_no){
 }
 
 int read_block(void* buffer, block_num num, int offset, int size, FILE* fp){
-    get_block(buffer, num, fp);
+    //get_block(buffer, num, fp);
     if(offset >= BLOCK_SIZE){
         return;
     }
