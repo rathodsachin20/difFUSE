@@ -7,7 +7,7 @@
 *  All requests to disk should go through layer 0.
 */
 
-void get_block(void* buffer, block_num num, FILE* fp);
+int get_block(void* buffer, block_num num, FILE* fp);
 
 void put_block(const void* buffer, block_num num, FILE* fp);
 

@@ -6,12 +6,14 @@
 #include "layer1.h"
 
 
-//int add_inode_entry(const char* filepath, long file_inum, FILE* fp){
-void add_inode_entry(const char* filepath, long file_inum, FILE* fp);
+block_num get_file_block_num(long offset, struct inode node, FILE* fp);
 
-long get_parent_inode_num(const char* filepath, FILE* fp);
+//int add_inode_entry(const char* filepath, block_num file_inum, FILE* fp){
+void add_inode_entry(const char* filepath, block_num file_inum, FILE* fp);
 
-long int fs_namei(FILE* fp, const char* filep);
+block_num get_parent_inode_num(const char* filepath, FILE* fp);
+
+block_num fs_namei(FILE* fp, const char* filep);
 
 int fs_create(const char *filepath, mode_t mode, struct fuse_file_info * ffi, FILE* fp);
 
