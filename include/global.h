@@ -58,7 +58,7 @@ struct inode{
     // ? long int size_partition;
     // ? bool file_is_locked;
     block_num direct_blocks[INODE_NUM_DIRECT_BLOCKS];
-    block_list single_indirect_block;
+    block_num single_indirect_block;
     block_num double_indirect_block;
     block_num triple_indirect_block;
 };
