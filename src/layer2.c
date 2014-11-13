@@ -17,7 +17,10 @@ block_num get_file_block_num(long offset, struct inode node, FILE* fp){
     }
     else if(offset < BLOCK_SIZE * (INODE_NUM_DIRECT_BLOCKS + n)){
 	indirect_offset = offset - (BLOCK_SIZE * INODE_NUM_DIRECT_BLOCKS);
-	block_no = node.single_indirect_block.list[indirect_offset/BLOCK_SIZE];
+	block_num indirect_block_no = node.single_indirect_block;
+	block_list indirect_block_list;
+	get_block(&indirect_block_list, indirect_block_no, fp);
+	block_no = indirect_block_list[indirect_offset/BLOCK_SIZE];
 	if(block_no == 0){
 	    printf("invalid offset in get_file_block_num");
 	    return 0;
