@@ -6,12 +6,12 @@
 *  direct and indirect blocks. Returns 0 when no block exists at given offset.
 */
 block_num get_file_block_num(long offset, struct inode node, FILE* fp){
-    block_num block_no;
+    block_num block_no = 0;
     int n = BLOCK_SIZE / sizeof(block_num); // Number of entries per blocks
     if(offset < BLOCK_SIZE * INODE_NUM_DIRECT_BLOCKS){
         block_no = node.direct_blocks[offset / BLOCK_SIZE];
         if(block_no == 0){
-	    printf("invalid offset in get_file_block_num");
+	    printf("invalid offset in direct get_file_block_num");
             return 0;
         }
     }
@@ -22,19 +22,30 @@ block_num get_file_block_num(long offset, struct inode node, FILE* fp){
 	get_block(&indirect_block_list, indirect_block_no, fp);
 	block_no = indirect_block_list[indirect_offset/BLOCK_SIZE];
 	if(block_no == 0){
-	    printf("invalid offset in get_file_block_num");
+	    printf("invalid offset in indirect get_file_block_num");
 	    return 0;
 	}
     }
-        else{
-            // TODO: Double Indirect
-            if(offset < BLOCK_SIZE * (INODE_NUM_DIRECT_BLOCKS + n + n*n)){
-                block_no = 0;
-            }
-            else{ // TODO: Triple Indirect
-                block_no = 0;
-            }
-        }
+    else if(offset < BLOCK_SIZE * (INODE_NUM_DIRECT_BLOCKS + n + n*n)){
+	d_indirect_offset = offset - (BLOCK_SIZE * (INODE_NUM_DIRECT_BLOCKS + n));
+	block_num d_indirect_block_no = node.double_indirect_block;
+	block_num s_indirect_block_no = 0;
+	block_list d_indirect_block_list;
+	block_list s_indirect_block_list;
+	get_block(&d_indirect_block_list, d_indirect_block_no, fp);
+	for(i=0; i<n; i++){
+	    if(d_indirect_offset < BLOCK_SIZE*n ){
+		s_indirect_block_no = d_indirect_block_list[i];
+		break;
+	    }
+	    d_indirect_offset -= BLOCK_SIZE*n;
+	}
+	get_block(&s_indirect_block_list, s_indirect_block_no, fp);
+	block_no = s_indirect_block_list[d_indirect_offset/BLOCK_SIZE];
+	if(block_no == 0){
+	    printf("invalid offset in double indirect getfile_block_num");
+	    return 0;
+	}
     }
     return block_no;
 }
