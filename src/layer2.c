@@ -17,7 +17,7 @@ block_num get_file_block_num(long offset, struct inode node, FILE* fp){
         }
     }
     else if(offset < BLOCK_SIZE * (INODE_NUM_DIRECT_BLOCKS + n)){
-	indirect_offset = offset - (BLOCK_SIZE * INODE_NUM_DIRECT_BLOCKS);
+	long int indirect_offset = offset - (BLOCK_SIZE * INODE_NUM_DIRECT_BLOCKS);
 	block_num indirect_block_no = node.single_indirect_block;
 	block_list indirect_block_list;
 	get_block(&indirect_block_list, indirect_block_no, fp);
@@ -28,7 +28,7 @@ block_num get_file_block_num(long offset, struct inode node, FILE* fp){
 	}
     }
     else if(offset < BLOCK_SIZE * (INODE_NUM_DIRECT_BLOCKS + n + n*n)){
-	d_indirect_offset = offset - (BLOCK_SIZE * (INODE_NUM_DIRECT_BLOCKS + n));
+	long int d_indirect_offset = offset - (BLOCK_SIZE * (INODE_NUM_DIRECT_BLOCKS + n));
 	block_num d_indirect_block_no = node.double_indirect_block;
 	block_num s_indirect_block_no = 0;
 	block_list d_indirect_block_list;
