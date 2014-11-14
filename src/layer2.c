@@ -7,6 +7,7 @@
 */
 block_num get_file_block_num(long offset, struct inode node, FILE* fp){
     block_num block_no = 0;
+    int i;
     int n = BLOCK_SIZE / sizeof(block_num); // Number of entries per blocks
     if(offset < BLOCK_SIZE * INODE_NUM_DIRECT_BLOCKS){
         block_no = node.direct_blocks[offset / BLOCK_SIZE];
