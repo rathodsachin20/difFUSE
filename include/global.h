@@ -46,8 +46,8 @@ struct superblock{
 
 struct inode{
     //unsigned inode_number; //may not be needed
-    unint16_t owner_id;
-    unint16_t group_id;
+    uint16_t owner_id;
+    uint16_t group_id;
     uint8_t type;
     int16_t perms;
     float accessed;
