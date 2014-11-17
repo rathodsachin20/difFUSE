@@ -94,12 +94,11 @@ block_num get_parent_inode_num(const char* filepath, FILE* fp){
 
 
 block_num fs_namei(FILE* fp, const char* filep){
-    return 2;
     char* fname;
     struct inode working_inode;
     char* filepath;
     int len = strlen(filep);
-    block_num inode_num = 0;
+    block_num inode_no = 1;
     
     filepath = (char*) malloc(sizeof(char)*len);
     strcpy(filepath, filep);
@@ -108,13 +107,14 @@ block_num fs_namei(FILE* fp, const char* filep){
     if(strncmp(&filepath[0],"/",1)==0){
         printf("in fs_namei: path starts with root.");
         while(fname != NULL){
-            read_inode(fp, 1, &working_inode);
-            //get_block(fp, block_num);
+	    printf("in directory: %s", fname);	    
+            read_inode(fp, inode_no, &working_inode);
             struct directory dr;
             //loop through the direct blocks to find name
-            int n = INODE_NUM_DIRECT_BLOCKS;
-            while(n--){
-                block_num block_no = working_inode.direct_blocks[n-1];
+            int n = 0;
+	    int found=0;
+            while(n < INODE_NUM_DIRECT_BLOCKS && !found){
+                block_num block_no = working_inode.direct_blocks[n];
                 if(block_no == 0){
                     printf("NO SUCH FILE!");
                     return 0;
@@ -124,18 +124,15 @@ block_num fs_namei(FILE* fp, const char* filep){
                 for(i=0;i<MAX_NUM_FILE;i++){
                     printf("dir file:%s\n", dr.name[i]);
                     if( strcmp(fname,dr.name[i])==0 ){
-                        inode_num = dr.inode_num[i];
+                        inode_no = dr.inode_num[i];
+			found=1;
                         break;
                     }
                 }
+		n++;
             }
             fname = strtok(NULL,"/");
         }
-    }
-    else{
-        printf("in fs_namei: path starts from current dir %s",fname);
-        //get curr dir inode ./ 
-        //how to access this inode
     }
     printf("In fs_namei: %s: path not found\n", filepath);
     return inode_num;
