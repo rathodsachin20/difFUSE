@@ -6,6 +6,7 @@
 *  direct and indirect blocks. Returns 0 when no block exists at given offset.
 */
 block_num get_file_block_num(long offset, struct inode node, FILE* fp){
+    return 6;
     block_num block_no = 0;
     int i;
     int n = BLOCK_SIZE / sizeof(block_num); // Number of entries per blocks
@@ -19,9 +20,9 @@ block_num get_file_block_num(long offset, struct inode node, FILE* fp){
     else if(offset < BLOCK_SIZE * (INODE_NUM_DIRECT_BLOCKS + n)){
 	long int indirect_offset = offset - (BLOCK_SIZE * INODE_NUM_DIRECT_BLOCKS);
 	block_num indirect_block_no = node.single_indirect_block;
-	block_list indirect_block_list;
+	struct block_list indirect_block_list;
 	get_block(&indirect_block_list, indirect_block_no, fp);
-	block_no = indirect_block_list[indirect_offset/BLOCK_SIZE];
+	block_no = indirect_block_list.list[indirect_offset/BLOCK_SIZE];
 	if(block_no == 0){
 	    printf("invalid offset in indirect get_file_block_num");
 	    return 0;
@@ -31,18 +32,18 @@ block_num get_file_block_num(long offset, struct inode node, FILE* fp){
 	long int d_indirect_offset = offset - (BLOCK_SIZE * (INODE_NUM_DIRECT_BLOCKS + n));
 	block_num d_indirect_block_no = node.double_indirect_block;
 	block_num s_indirect_block_no = 0;
-	block_list d_indirect_block_list;
-	block_list s_indirect_block_list;
+	struct block_list d_indirect_block_list;
+	struct block_list s_indirect_block_list;
 	get_block(&d_indirect_block_list, d_indirect_block_no, fp);
 	for(i=0; i<n; i++){
 	    if(d_indirect_offset < BLOCK_SIZE*n ){
-		s_indirect_block_no = d_indirect_block_list[i];
+		s_indirect_block_no = d_indirect_block_list.list[i];
 		break;
 	    }
 	    d_indirect_offset -= BLOCK_SIZE*n;
 	}
 	get_block(&s_indirect_block_list, s_indirect_block_no, fp);
-	block_no = s_indirect_block_list[d_indirect_offset/BLOCK_SIZE];
+	block_no = s_indirect_block_list.list[d_indirect_offset/BLOCK_SIZE];
 	if(block_no == 0){
 	    printf("invalid offset in double indirect getfile_block_num");
 	    return 0;
@@ -61,8 +62,8 @@ void add_inode_entry(const char* filepath, block_num file_inum, FILE* fp){
     struct inode parent_node;
     printf("Here-10\t");
     read_inode(fp, parent_inum, &parent_node);
-    //block_num block_num = parent_node.direct_blocks[0];
-    block_num block_no = 1+NUM_INODES;
+    block_num block_no = parent_node.direct_blocks[0];
+    //block_num block_no = 1 + NUM_INODE_BLOCKS;
     printf("Here-8\t");
     if(block_no == 0){
         printf("Here-7\t");
@@ -100,14 +101,14 @@ block_num fs_namei(FILE* fp, const char* filep){
     int len = strlen(filep);
     block_num inode_no = 1;
     
-    filepath = (char*) malloc(sizeof(char)*len);
+    filepath = (char*) malloc(sizeof(char) * (len+1));
     strcpy(filepath, filep);
     fname = strtok(filepath,"/");
     
     if(strncmp(&filepath[0],"/",1)==0){
-        printf("in fs_namei: path starts with root.");
+        printf("in fs_namei: path starts with root.\n");
         while(fname != NULL){
-	    printf("in directory: %s", fname);	    
+	    printf("in directory: %s\n", fname);	    
             read_inode(fp, inode_no, &working_inode);
             struct directory dr;
             //loop through the direct blocks to find name
@@ -116,16 +117,17 @@ block_num fs_namei(FILE* fp, const char* filep){
             while(n < INODE_NUM_DIRECT_BLOCKS && !found){
                 block_num block_no = working_inode.direct_blocks[n];
                 if(block_no == 0){
-                    printf("NO SUCH FILE!");
+                    printf("NO SUCH FILE!\n");
                     return 0;
                 }
                 get_block(&dr, block_no, fp);
                 int i;
-                for(i=0;i<MAX_NUM_FILE;i++){
+                for(i=0; i<BLOCK_SIZE/NAMEI_ENTRY_SIZE; i++){
                     printf("dir file:%s\n", dr.name[i]);
                     if( strcmp(fname,dr.name[i])==0 ){
                         inode_no = dr.inode_num[i];
-			found=1;
+                        found=1;
+                        printf("PATH FOUND!!!\n");
                         break;
                     }
                 }
@@ -135,7 +137,7 @@ block_num fs_namei(FILE* fp, const char* filep){
         }
     }
     printf("In fs_namei: %s: path not found\n", filepath);
-    return inode_num;
+    return inode_no;
 }
 
 int fs_create(const char *filepath, mode_t mode, struct fuse_file_info * ffi, FILE* fp){
@@ -143,7 +145,15 @@ int fs_create(const char *filepath, mode_t mode, struct fuse_file_info * ffi, FI
         return -1; 
     //using namei find the directory and the data block to write into
     //namei(fp,filepath);
+
+    int len = strlen(filepath);
     
+    char* fname = (char*) malloc(sizeof(char) * (len+1));
+    strcpy(fname, filepath);
+    char* pch = strrchr(filepath, '/');
+    strncpy(fname, &filepath[pch - filepath + 1], len);
+
+
     struct inode node;
     block_num inode_num = allocate_inode(fp, &node);
     printf("in fs_create: got inode no. %ld", inode_num);
@@ -157,8 +167,9 @@ int fs_create(const char *filepath, mode_t mode, struct fuse_file_info * ffi, FI
     write_inode(fp, inode_num, &node);
     
     // Make entry in parent dir
-    add_inode_entry(filepath, inode_num, fp);
+    add_inode_entry(fname, inode_num, fp);
     printf("File Created.\n");
+    printf("fname is %s.\n", fname);
     return 0;
 }
 
@@ -176,6 +187,7 @@ int fs_create_dir(const char *filepath, mode_t mode, struct fuse_file_info * ffi
     nodep.type = 2;
     //nodep.file_modified = time(0);
     nodep.direct_blocks[0] = allocate_block(fp);
+    // TODO: add entries for . and ..
     write_inode(fp, inode_num, &nodep);
     return 0;
 }
