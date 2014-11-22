@@ -6,7 +6,7 @@
 #include "layer1.h"
 
 
-block_num get_file_block_num(long offset, struct inode node, FILE* fp);
+block_num get_file_block_num(long offset, block_num inode_num, bool allocate, FILE* fp);
 
 //int add_inode_entry(const char* filepath, block_num file_inum, FILE* fp){
 void add_inode_entry(const char* filepath, block_num file_inum, FILE* fp);

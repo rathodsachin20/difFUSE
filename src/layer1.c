@@ -171,7 +171,7 @@ int read_block(void* buffer, block_num num, int offset, int size, FILE* fp){
     if(offset+size >= BLOCK_SIZE){
         size =  BLOCK_SIZE - offset;
     }
-    char* read_buff[BLOCK_SIZE];
+    char read_buff[BLOCK_SIZE];
     get_block(read_buff, num, fp);
     memcpy(buffer, &read_buff[offset], size);
     if(ferror(fp))
@@ -187,9 +187,10 @@ void write_block(const void* buffer, block_num num, int offset, int size, FILE* 
     if(offset+size >= BLOCK_SIZE){
         size =  BLOCK_SIZE - offset;
     }
-    char* read_buff[BLOCK_SIZE];
+    char read_buff[BLOCK_SIZE];
     get_block(read_buff, num, fp);
     memcpy(&read_buff[offset], buffer, size);
+    printf("Buffer:%s. Readbuff:%s\n", (char*)buffer, read_buff);
     put_block(read_buff, num, fp);
 }
 

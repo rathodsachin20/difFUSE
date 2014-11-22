@@ -94,7 +94,7 @@ void initalize_inodes(FILE* fp){
     }
 }
 
-void write_inode(FILE* fp, long inumber, struct inode* inodep){
+void write_inode(FILE* fp, block_num inumber, struct inode* inodep){
     //printf("IN FUNCION write_inode.\n");
     // Position to seek. Inode number start from 1
     long block_no = ((inumber - 1) / (BLOCK_SIZE / INODE_SIZE)) + 1; //get blk num to write inode in

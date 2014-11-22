@@ -3,52 +3,69 @@
 #include "layer2.h"
 
 /* Returns a block number on disk for the given offset in a file, by travesing
-*  direct and indirect blocks. Returns 0 when no block exists at given offset.
+*  direct and indirect blocks. 
+*  If no block exists at given offset and if allocate is true, it will allocate
+*  a new block. Otherwise, it returns 0.
 */
-block_num get_file_block_num(long offset, struct inode node, FILE* fp){
-    return 6;
+block_num get_file_block_num(long offset, block_num inode_num, bool allocate, FILE* fp){
+    //return 6;
+    struct inode node;
+    read_inode(fp, inode_num, &node);
+    block_num block_index = offset / BLOCK_SIZE;
     block_num block_no = 0;
     int i;
     int n = BLOCK_SIZE / sizeof(block_num); // Number of entries per blocks
-    if(offset < BLOCK_SIZE * INODE_NUM_DIRECT_BLOCKS){
-        block_no = node.direct_blocks[offset / BLOCK_SIZE];
+    if(block_index < INODE_NUM_DIRECT_BLOCKS){
+        block_no = node.direct_blocks[block_index];
         if(block_no == 0){
-	    printf("invalid offset in direct get_file_block_num");
+            if( allocate ){
+               block_no = allocate_block(fp);
+               if(block_no == 0){
+                   // No free blocks available
+                   return 0;
+               }
+               node.direct_blocks[block_index] = block_no;
+               write_inode(fp, inode_num, &node);
+            }
+            else { // No new allocation asked
+               printf("Block not allocated or invalid offset in direct get_file_block_num");
+               return 0;
+            }
+        }
+    }
+    else if(block_index < (INODE_NUM_DIRECT_BLOCKS + n)){
+        long int indirect_offset = offset - (BLOCK_SIZE * INODE_NUM_DIRECT_BLOCKS);
+        block_num indirect_block_no = node.single_indirect_block;
+        struct block_list indirect_block_list;
+        get_block(&indirect_block_list, indirect_block_no, fp);
+        block_no = indirect_block_list.list[indirect_offset/BLOCK_SIZE];
+        if(block_no == 0){
+            printf("Block not allocated or invalid offset in indirect get_file_block_num");
             return 0;
         }
     }
-    else if(offset < BLOCK_SIZE * (INODE_NUM_DIRECT_BLOCKS + n)){
-	long int indirect_offset = offset - (BLOCK_SIZE * INODE_NUM_DIRECT_BLOCKS);
-	block_num indirect_block_no = node.single_indirect_block;
-	struct block_list indirect_block_list;
-	get_block(&indirect_block_list, indirect_block_no, fp);
-	block_no = indirect_block_list.list[indirect_offset/BLOCK_SIZE];
-	if(block_no == 0){
-	    printf("invalid offset in indirect get_file_block_num");
-	    return 0;
-	}
+    else if(block_index < (INODE_NUM_DIRECT_BLOCKS + n + n*n)){
+        long int d_indirect_offset = offset - (BLOCK_SIZE * (INODE_NUM_DIRECT_BLOCKS + n));
+        block_num d_indirect_block_no = node.double_indirect_block;
+        block_num s_indirect_block_no = 0;
+        struct block_list d_indirect_block_list;
+        struct block_list s_indirect_block_list;
+        get_block(&d_indirect_block_list, d_indirect_block_no, fp);
+        for(i=0; i<n; i++){
+            if(d_indirect_offset < BLOCK_SIZE*n ){
+                s_indirect_block_no = d_indirect_block_list.list[i];
+                break;
+            }
+            d_indirect_offset -= BLOCK_SIZE*n;
+        }
+        get_block(&s_indirect_block_list, s_indirect_block_no, fp);
+        block_no = s_indirect_block_list.list[d_indirect_offset/BLOCK_SIZE];
+        if(block_no == 0){
+            printf("invalid offset in double indirect getfile_block_num");
+            return 0;
+        }
     }
-    else if(offset < BLOCK_SIZE * (INODE_NUM_DIRECT_BLOCKS + n + n*n)){
-	long int d_indirect_offset = offset - (BLOCK_SIZE * (INODE_NUM_DIRECT_BLOCKS + n));
-	block_num d_indirect_block_no = node.double_indirect_block;
-	block_num s_indirect_block_no = 0;
-	struct block_list d_indirect_block_list;
-	struct block_list s_indirect_block_list;
-	get_block(&d_indirect_block_list, d_indirect_block_no, fp);
-	for(i=0; i<n; i++){
-	    if(d_indirect_offset < BLOCK_SIZE*n ){
-		s_indirect_block_no = d_indirect_block_list.list[i];
-		break;
-	    }
-	    d_indirect_offset -= BLOCK_SIZE*n;
-	}
-	get_block(&s_indirect_block_list, s_indirect_block_no, fp);
-	block_no = s_indirect_block_list.list[d_indirect_offset/BLOCK_SIZE];
-	if(block_no == 0){
-	    printf("invalid offset in double indirect getfile_block_num");
-	    return 0;
-	}
-    }
+    printf("get_file_block_no returning:%ld", block_no);
     return block_no;
 }
 
@@ -62,6 +79,7 @@ void add_inode_entry(const char* filepath, block_num file_inum, FILE* fp){
     struct inode parent_node;
     printf("Here-10\t");
     read_inode(fp, parent_inum, &parent_node);
+    //TODO: iterate to get last unfilled block and add entry there
     block_num block_no = parent_node.direct_blocks[0];
     //block_num block_no = 1 + NUM_INODE_BLOCKS;
     printf("Here-8\t");
@@ -108,12 +126,12 @@ block_num fs_namei(FILE* fp, const char* filep){
     if(strncmp(&filepath[0],"/",1)==0){
         printf("in fs_namei: path starts with root.\n");
         while(fname != NULL){
-	    printf("in directory: %s\n", fname);	    
+            printf("in directory: %s\n", fname);            
             read_inode(fp, inode_no, &working_inode);
             struct directory dr;
             //loop through the direct blocks to find name
             int n = 0;
-	    int found=0;
+            int found=0;
             while(n < INODE_NUM_DIRECT_BLOCKS && !found){
                 block_num block_no = working_inode.direct_blocks[n];
                 if(block_no == 0){
@@ -131,7 +149,7 @@ block_num fs_namei(FILE* fp, const char* filep){
                         break;
                     }
                 }
-		n++;
+                n++;
             }
             fname = strtok(NULL,"/");
         }
@@ -162,7 +180,7 @@ int fs_create(const char *filepath, mode_t mode, struct fuse_file_info * ffi, FI
     node.group_id = 1;
     node.type = 1;
     //node.file_modified = time(0);
-    node.direct_blocks[0] = 0;
+    node.direct_blocks[0] = 0; //TODO: this should not be needed
     //node.direct_blocks[0] = allocate_block(fp);
     write_inode(fp, inode_num, &node);
     
@@ -221,8 +239,8 @@ int fs_read(const char *filepath, char *buf, size_t count, off_t offset, struct 
     if(inode_num == 0)
         printf("file does not exist.\n");
     struct inode node;
-    read_inode(fp, inode_num, &node);
-    block_no = get_file_block_num(offset, node, fp);
+    //read_inode(fp, inode_num, &node);
+    block_no = get_file_block_num(offset, inode_num, false, fp);
     offset = offset % BLOCK_SIZE; // offset within block
     //block_no = nodep.direct_blocks[0];
     read_block(buf, block_no, offset, count, fp);
@@ -247,15 +265,15 @@ int fs_write(const char* filepath, long offset, const char* buffer, long size, F
     
     block_num block_no = 0;
     struct inode node;
-    read_inode(fp, inode_num, &node);
+    //read_inode(fp, inode_num, &node);
     // Calculate from offset the block number and determine if it is direct, indirect block
-    block_no = get_file_block_num(offset, node, fp);
+    block_no = get_file_block_num(offset, inode_num, true, fp);
     write_block(buffer, block_no, offset % BLOCK_SIZE, size, fp);
     if(ferror(fp))
         perror("Error writing data ");
     fflush(fp);
     
-    write_inode(fp, inode_num, &node);
+    //write_inode(fp, inode_num, &node);
     printf("file write complete.\n");
     return 0;
 }
