@@ -90,6 +90,7 @@ void initalize_inodes(FILE* fp){
         inode.single_indirect_block = 0;
         inode.double_indirect_block = 0;
         inode.triple_indirect_block = 0;
+        inode.last_filled_block_index = 0;
         write_inode(fp, i+1, &inode);
     }
 }

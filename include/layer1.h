@@ -30,7 +30,11 @@ void write_link_block(FILE* fp, block_num num, struct block_list* bl);
 void update_free_blocks_list(struct superblock* sb, block_num block_no, FILE* fp);
 
 
+block_num allocate_block_list(FILE* fp);
 
+int read_block_list(void* bl, block_num bn, FILE* fp);
+
+void write_block_list(const void* bl, block_num bn, FILE* fp);
 
 
 #endif /* __layer1_h__  */

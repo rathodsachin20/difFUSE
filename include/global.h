@@ -61,6 +61,7 @@ struct inode{
     block_num single_indirect_block;
     block_num double_indirect_block;
     block_num triple_indirect_block;
+    long last_filled_block_index;
 };
 
 /* List of block ids to be stored in a block.

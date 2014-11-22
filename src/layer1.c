@@ -190,7 +190,7 @@ void write_block(const void* buffer, block_num num, int offset, int size, FILE* 
     char read_buff[BLOCK_SIZE];
     get_block(read_buff, num, fp);
     memcpy(&read_buff[offset], buffer, size);
-    printf("Buffer:%s. Readbuff:%s\n", (char*)buffer, read_buff);
+    //printf("Buffer:%s. Readbuff:%s\n", (char*)buffer, read_buff);
     put_block(read_buff, num, fp);
 }
 
@@ -267,5 +267,18 @@ void update_free_blocks_list(struct superblock* sb, block_num block_no, FILE* fp
     
 }
 
+block_num allocate_block_list(FILE* fp){
+    block_num block_no = allocate_block(fp);
+    if(!block_no) return 0;
+    struct directory dir;
+    write_block(&dir, block_no, 0, sizeof(struct block_list), fp);
+    return block_no;
+}
 
+int read_block_list(void* bl, block_num bn, FILE* fp){
+    return read_block(&bl, bn, 0, sizeof(struct block_list), fp);
+}
 
+void write_block_list(const void* bl, block_num bn, FILE* fp){
+    write_block(&bl, bn, 0, sizeof(struct block_list), fp);
+}
