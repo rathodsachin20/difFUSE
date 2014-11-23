@@ -2,6 +2,7 @@
 //#include "fsutil.c"
 #include "layer2.h"
 //#include "fs_func.c"
+#define LARGE_SIZE 1024
 
 int main(){
     int size = 1024*100;
@@ -33,24 +34,40 @@ int main(){
     mode_t mode;
     struct fuse_file_info;
     char text[] = "Hello world";
-printf("11th:%c...\n", text[11]);
+    char largetext[LARGE_SIZE];
+    int i;
+    for(i=0; i<LARGE_SIZE; i++){
+        largetext[i] = (char)(i%26+63);
+    }
+    largetext[i] = '\0';
+    printf("LARGETEXT:%s\n", largetext);
+
+    printf("11th:%c...\n", text[11]);
     fs_create_dir("/", mode, fp); // Move creation of root dir to mkfs
+
     fs_create("/tt.txt", mode, fp );
     fs_write("/tt.txt", 0, text, 11, fp);
     char read_buff[15];
     fs_read("/tt.txt", read_buff, 11, 0, fp);
-    printf("FILE CONTENTS:%s\n\n\n", read_buff);
+    printf(" FILE 1 CONTENTS:%s\n\n\n", read_buff);
 
     char text1[] = "I am back!";
     fs_create("/ss.txt", mode, fp );
     fs_write("/ss.txt", 0, text1, 11, fp);
     char read_buff1[15];
     fs_read("/ss.txt", read_buff1, 11, 0, fp);
-    printf("FILE CONTENTS:%s\n\n\n", read_buff1);
+    printf(" FILE 2 CONTENTS:%s\n\n\n", read_buff1);
 
     strcpy(read_buff, "Garbage!!");
     fs_read("/tt.txt", read_buff, 11, 0, fp);
-    printf("FILE CONTENTS:%s\n\n\n", read_buff);
+    printf(" FILE 1 CONTENTS:%s\n\n\n", read_buff);
+
+    fs_create("/large.txt", mode, fp );
+    fs_write("/large.txt", 0, largetext, LARGE_SIZE, fp);
+    char read_buff_large[LARGE_SIZE];
+    fs_read("/large.txt", read_buff_large, LARGE_SIZE, 0, fp);
+    printf(" FILE 4 CONTENTS:%s\n\n\n", read_buff_large);
+
 
     fclose(fp);
 

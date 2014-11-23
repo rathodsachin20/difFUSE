@@ -396,11 +396,11 @@ int fs_read(const char *filepath, char *buf, size_t count, off_t offset, FILE* f
     read_offset += read_count;
     index++;
 
-    while(index < lastindex){ // File larger than one block
+    while(index <= lastindex){ // File larger than one block
         block_no = get_file_block_num(index, inode_num, false, fp);
         if(!block_no) continue;
         read_count = read_block(read_buff, block_no, 0, BLOCK_SIZE, fp);
-        memcpy(buf, read_buff, read_count);
+        memcpy(&buf[read_offset], read_buff, read_count);
         read_offset += read_count;
         if(read_count < BLOCK_SIZE) break;
         index++;
@@ -409,7 +409,7 @@ int fs_read(const char *filepath, char *buf, size_t count, off_t offset, FILE* f
 }
 
 int fs_write(const char* filepath, long offset, const char* buffer, long size, FILE* fp){
-    // Get inode using silepath
+    if(size <= 0) return -1;
     block_num inode_num = fs_namei(fp, filepath);
     mode_t mode = NULL; // TODO: Change this to defaults
     
@@ -419,14 +419,34 @@ int fs_write(const char* filepath, long offset, const char* buffer, long size, F
         printf("%s : No such file exists!\n", filepath);
         return -1;
     }
-    
-    block_num block_no = 0;
+
     struct inode node;
-    //read_inode(fp, inode_num, &node);
-    block_no = get_file_block_num(offset/BLOCK_SIZE, inode_num, true, fp);
-    write_block(buffer, block_no, offset % BLOCK_SIZE, size, fp);
+    read_inode(fp, inode_num, &node);
+    if(node.file_size > 0){
+        printf("File Already exists with non-zero size!!\n");
+        return;
+    }
+
+    int num_blocks = ((size-1) / BLOCK_SIZE) + 1;
+    block_num block_no = 0;
+
+    int i;
+    //long remaining = size;
+    long buff_offset = 0;
+    for( i=0; i<num_blocks-1; i++){
+        block_no = get_file_block_num(i, inode_num, true, fp);
+        write_block(&buffer[buff_offset], block_no, 0, BLOCK_SIZE, fp);
+        buff_offset += BLOCK_SIZE;
+    }
+    long remaining = size - buff_offset;
+    block_no = get_file_block_num(num_blocks-1, inode_num, true, fp);
+    write_block(&buffer[buff_offset], block_no, 0, remaining, fp);
+
+    read_inode(fp, inode_num, &node); // Always read just before modifying!!
+    node.last_filled_block_index = num_blocks -1;
+    node.file_size = size;
     
-    //write_inode(fp, inode_num, &node);
+    write_inode(fp, inode_num, &node);
     printf("file write complete.\n");
     return 0;
 }
