@@ -100,6 +100,10 @@ void free_inode(FILE* fp, block_num inumber){
 /* Read contents of inode into inode struct
 */
 void read_inode(FILE* fp, block_num inode_num, struct inode* nodep){
+    if(inode_num < 1 || inode_num > NUM_INODES){
+        printf("Invalid Inode Number.\n");
+        return;
+    }
     block_num block_no = ((inode_num - 1) / (BLOCK_SIZE/INODE_SIZE)) + 1;
     int offset = ((inode_num - 1) % (BLOCK_SIZE/INODE_SIZE)) * INODE_SIZE;
     read_block((void*) nodep, block_no, offset, sizeof(struct inode), fp);
@@ -281,4 +285,14 @@ int read_block_list(void* bl, block_num bn, FILE* fp){
 
 void write_block_list(const void* bl, block_num bn, FILE* fp){
     write_block(&bl, bn, 0, sizeof(struct block_list), fp);
+}
+
+void initialize_dir_block(block_num block_no, FILE* fp){
+    struct directory dir;
+    int i;
+    for(i=0; i<BLOCK_SIZE/NAMEI_ENTRY_SIZE; i++){
+        dir.inode_num[i] = 0;
+        strcpy(dir.name[i], "");
+    }
+    write_block(&dir, block_no, 0, sizeof(struct directory), fp);
 }

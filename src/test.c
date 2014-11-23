@@ -34,20 +34,23 @@ int main(){
     struct fuse_file_info;
     char text[] = "Hello world";
 printf("11th:%c...\n", text[11]);
-    fs_create_dir("/", mode, NULL, fp); // Move creation of root dir to mkfs
-    fs_create("/tt.txt", mode, NULL, fp );
+    fs_create_dir("/", mode, fp); // Move creation of root dir to mkfs
+    fs_create("/tt.txt", mode, fp );
     fs_write("/tt.txt", 0, text, 11, fp);
     char read_buff[15];
-    fs_read("/tt.txt", read_buff, 11, 0, NULL, fp);
+    fs_read("/tt.txt", read_buff, 11, 0, fp);
     printf("FILE CONTENTS:%s\n\n\n", read_buff);
 
     char text1[] = "I am back!";
-    fs_create("/ss.txt", mode, NULL, fp );
+    fs_create("/ss.txt", mode, fp );
     fs_write("/ss.txt", 0, text1, 11, fp);
     char read_buff1[15];
-    fs_read("/ss.txt", read_buff1, 11, 0, NULL, fp);
+    fs_read("/ss.txt", read_buff1, 11, 0, fp);
     printf("FILE CONTENTS:%s\n\n\n", read_buff1);
 
+    strcpy(read_buff, "Garbage!!");
+    fs_read("/tt.txt", read_buff, 11, 0, fp);
+    printf("FILE CONTENTS:%s\n\n\n", read_buff);
 
     fclose(fp);
 

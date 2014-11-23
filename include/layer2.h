@@ -15,13 +15,13 @@ block_num get_parent_inode_num(const char* filepath, FILE* fp);
 
 block_num fs_namei(FILE* fp, const char* filep);
 
-int fs_create(const char *filepath, mode_t mode, struct fuse_file_info * ffi, FILE* fp);
+int fs_create(const char *filepath, mode_t mode, FILE* fp);
 
-int fs_create_dir(const char *filepath, mode_t mode, struct fuse_file_info * ffi, FILE* fp);
+int fs_create_dir(const char *filepath, mode_t mode, FILE* fp);
 
-int fs_open(const char* filepath, struct fuse_file_info* ffi, FILE* fp);
+int fs_open(const char* filepath, FILE* fp);
 
-int fs_read(const char *filepath, char *buf, size_t count, off_t offset, struct fuse_file_info * ffi, FILE* fp);
+int fs_read(const char *filepath, char *buf, size_t count, off_t offset, FILE* fp);
 
 int fs_write(const char* filepath, long offset, const char* buffer, long size, FILE* fp);
 

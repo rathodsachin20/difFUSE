@@ -165,36 +165,58 @@ block_num get_file_block_num(int block_index, block_num inode_num, bool allocate
 //int add_inode_entry(const char* filepath, block_num file_inum, FILE* fp){
 void add_inode_entry(const char* filepath, block_num file_inum, FILE* fp){
     printf("\tin add_inode_entry\n");
-    printf("size of struct dir:%ld\n", sizeof(struct directory));
-    block_num parent_inum = get_parent_inode_num(filepath, fp);
+    int len = strlen(filepath);
+    char* fname = (char*) malloc(sizeof(char) * (len+1));
+    strcpy(fname, filepath);
+    char* pch = strrchr(filepath, '/');
+    strncpy(fname, &filepath[pch - filepath + 1], len);
+
     struct directory dir;
     struct inode parent_node;
-    printf("Here-10\t");
+
+    block_num parent_inum = get_parent_inode_num(filepath, fp);
     read_inode(fp, parent_inum, &parent_node);
     //TODO: iterate to get last unfilled block and add entry there
-    block_num block_no = parent_node.direct_blocks[0];
-    parent_node.last_filled_block_index = 0;
+    //block_num block_no = parent_node.direct_blocks[0];
+    int lastindex = parent_node.last_filled_block_index;
+    block_num block_no = get_file_block_num(lastindex, parent_inum, true, fp);
     //block_num block_no = 1 + NUM_INODE_BLOCKS;
-    printf("Here-8\t");
     if(block_no == 0){
-        printf("Here-7\t");
-        block_no = allocate_block(fp);
-        parent_node.direct_blocks[0] = block_no;
-        write_inode(fp, parent_inum, &parent_node);
+        return;
+        //block_no = allocate_block(fp);
+        //parent_node.direct_blocks[0] = block_no;
+        //write_inode(fp, parent_inum, &parent_node);
     }
     
     
-    printf("Here0\t");
     read_block(&dir, block_no, 0, sizeof(struct directory), fp);
-    dir.inode_num[0] = file_inum;
-    printf("Here4\t");
-    dir.name[0][MAX_FILE_NAME_LEN-1] = '\0';
-    strcpy(dir.name[0], &filepath[0]);
-    printf("Here5\t");
+    
+    int i;
+    bool empty_slot = false;
+    for(i=0; i<BLOCK_SIZE/NAMEI_ENTRY_SIZE; i++){
+        if(dir.inode_num[i]==0){
+            dir.inode_num[i] = file_inum;
+            //dir.name[i][MAX_FILE_NAME_LEN-1] = '\0';
+            strcpy(dir.name[i], &fname[0]);
+            empty_slot = true;
+            break;
+        }
+        continue;
+    }
+    if(!empty_slot){ // New block needed
+        block_no = get_file_block_num(lastindex+1, parent_inum, true, fp);
+        initialize_dir_block(block_no, fp);
+        parent_node.last_filled_block_index = lastindex + 1;;
+        write_inode(fp, parent_inum, &parent_node);
+        read_block(&dir, block_no, 0, sizeof(struct directory), fp);
+        dir.inode_num[0] = file_inum;
+        strcpy(dir.name[0], &fname[0]);
+
+    }
     write_block(&dir, block_no, 0, sizeof(struct directory), fp);
-    struct directory dir2;
-    read_block(&dir2, block_no, 0, sizeof(struct directory), fp);
-    printf("DIR DISK CONTENTS:%ld, %s\n", dir2.inode_num[0], dir2.name[0]);
+    //struct directory dir2;
+    //read_block(&dir2, block_no, 0, sizeof(struct directory), fp);
+    //printf("DIR DISK CONTENTS:%ld, %s\n", dir2.inode_num[0], dir2.name[0]);
     printf("INODE ENTRY ADDED TO PARENT.\n");
     //return 0;
 }
@@ -236,7 +258,7 @@ block_num fs_namei(FILE* fp, const char* filep){
                 read_block(&dr, block_no, 0, sizeof(struct directory), fp);
                 int i;
                 for(i=0; i<BLOCK_SIZE/NAMEI_ENTRY_SIZE; i++){
-                    printf("dir file:%s\n", dr.name[i]);
+                    printf("\n----------dir file:%s.", dr.name[i]);
                     if( strcmp(fname,dr.name[i])==0 ){
                         inode_no = dr.inode_num[i];
                         found=1;
@@ -245,6 +267,10 @@ block_num fs_namei(FILE* fp, const char* filep){
                     }
                 }
                 n++;
+                if(!found){
+                    printf("PATH NOT FOUND!!!");
+                    return 0;
+                }
             }
             fname = strtok(NULL,"/");
         }
@@ -253,11 +279,9 @@ block_num fs_namei(FILE* fp, const char* filep){
     return inode_no;
 }
 
-int fs_create(const char *filepath, mode_t mode, struct fuse_file_info * ffi, FILE* fp){
+int fs_create(const char *filepath, mode_t mode, FILE* fp){
     if(filepath == NULL)
         return -1; 
-    //using namei find the directory and the data block to write into
-    //namei(fp,filepath);
 
     int len = strlen(filepath);
     
@@ -274,38 +298,51 @@ int fs_create(const char *filepath, mode_t mode, struct fuse_file_info * ffi, FI
     node.owner_id = 121 ;
     node.group_id = 1;
     node.type = 1;
+    node.last_filled_block_index = -1;
     //node.file_modified = time(0);
-    node.direct_blocks[0] = 0; //TODO: this should not be needed
+    //node.direct_blocks[0] = 0; //TODO: this should not be needed
     //node.direct_blocks[0] = allocate_block(fp);
     write_inode(fp, inode_num, &node);
     
     // Make entry in parent dir
-    add_inode_entry(fname, inode_num, fp);
+    add_inode_entry(filepath, inode_num, fp);
     printf("File Created.\n");
     printf("fname is %s.\n", fname);
     return 0;
 }
 
-int fs_create_dir(const char *filepath, mode_t mode, struct fuse_file_info * ffi, FILE* fp){
+int fs_create_dir(const char *filepath, mode_t mode, FILE* fp){
     if(filepath == NULL)
         return -1; //have to check how to return error number
-    //using namei find the directory and the data block to write into
-    //namei(fp,filepath);
-    struct inode nodep;
-    block_num inode_num = allocate_inode(fp, &nodep);
+
+    struct inode node;
+    block_num inode_num = allocate_inode(fp, &node);
     printf("in fs_create_dir: got inode no. %ld\n", inode_num);
-    read_inode(fp, inode_num, &nodep);
-    nodep.owner_id = 121 ;
-    nodep.group_id = 1;
-    nodep.type = 2;
-    //nodep.file_modified = time(0);
-    nodep.direct_blocks[0] = allocate_block(fp);
-    // TODO: add entries for . and ..
-    write_inode(fp, inode_num, &nodep);
+
+    add_inode_entry(filepath, inode_num, fp);
+    block_num block_no = get_file_block_num(0, inode_num, true, fp);
+
+    // Add entries for . and ..
+    initialize_dir_block(block_no, fp);
+    struct directory dir;
+    read_block(&dir, block_no, 0, sizeof(struct directory), fp);
+    dir.inode_num[0] = inode_num;
+    strcpy(dir.name[0], ".");
+    dir.inode_num[1] = get_parent_inode_num(filepath, fp);
+    strcpy(dir.name[1], "..");
+    write_block(&dir, block_no, 0, sizeof(struct directory), fp);
+
+    read_inode(fp, inode_num, &node);
+    node.last_filled_block_index = 0;
+    node.owner_id = 121 ;
+    node.group_id = 1;
+    node.type = 2;
+    //node.file_modified = time(0);
+    write_inode(fp, inode_num, &node);
     return 0;
 }
 
-int fs_open(const char* filepath, struct fuse_file_info* ffi, FILE* fp){
+int fs_open(const char* filepath, FILE* fp){
     //check for errors
     //if file does not exist then create a new file
     //use namei to get inode
@@ -314,7 +351,7 @@ int fs_open(const char* filepath, struct fuse_file_info* ffi, FILE* fp){
     block_num inode_num = fs_namei(fp, filepath);
     if(inode_num == 0){
         printf("file doesnt exist, creating...");
-        fs_create(filepath, 0, ffi, fp);
+        fs_create(filepath, 0, fp);
     }
     else{
         printf("do nothing");
@@ -323,37 +360,62 @@ int fs_open(const char* filepath, struct fuse_file_info* ffi, FILE* fp){
     return 0;
 }
 
-int fs_read(const char *filepath, char *buf, size_t count, off_t offset, struct fuse_file_info * ffi, FILE* fp){
+int fs_read(const char *filepath, char *buf, size_t count, off_t offset, FILE* fp){
     /*check if user has permission to read
      if(inode->file_size < offset)
      return error;
      */
     block_num inode_num = 0;
     block_num block_no = 0;
+    int read_count = 0;
+    int read_offset = 0;
+    char read_buff[BLOCK_SIZE];
+
     inode_num = fs_namei(fp, filepath);
-    if(inode_num == 0)
-        printf("file does not exist.\n");
+    if(inode_num == 0){
+        printf("%s:file does not exist.\n", filepath);
+        return 0;
+    }
     struct inode node;
-    //read_inode(fp, inode_num, &node);
-    block_no = get_file_block_num(offset/BLOCK_SIZE, inode_num, false, fp);
-    offset = offset % BLOCK_SIZE; // offset within block
-    //block_no = nodep.direct_blocks[0];
-    read_block(buf, block_no, offset, count, fp);
-    return count;
-    //get data from block and display
+    read_inode(fp, inode_num, &node);
+    int lastindex = node.last_filled_block_index;
+
+    int index = offset/BLOCK_SIZE; // Assuming linearly filled file
+    /*int index = 0; 
+    while(index < lastindex){
+        block_no = get_file_block_num(index, inode_num, false, fp);
+        if(!block_no) continue;
+        read_offset += BLOCK_SIZE;
+    }
+    read_offset = 0; */
+
+    block_no = get_file_block_num(index, inode_num, false, fp);
+    offset = offset % BLOCK_SIZE; // offset within first block
+    read_count = read_block(read_buff, block_no, offset, count, fp);
+    memcpy(buf, read_buff, read_count);
+    read_offset += read_count;
+    index++;
+
+    while(index < lastindex){ // File larger than one block
+        block_no = get_file_block_num(index, inode_num, false, fp);
+        if(!block_no) continue;
+        read_count = read_block(read_buff, block_no, 0, BLOCK_SIZE, fp);
+        memcpy(buf, read_buff, read_count);
+        read_offset += read_count;
+        if(read_count < BLOCK_SIZE) break;
+        index++;
+    }
+    return read_offset;
 }
 
 int fs_write(const char* filepath, long offset, const char* buffer, long size, FILE* fp){
     // Get inode using silepath
     block_num inode_num = fs_namei(fp, filepath);
     mode_t mode = NULL; // TODO: Change this to defaults
-    //struct fuse_file_info  ffi = NULL; // TODO: Change this to incoming parameter
     
     // Write expects file to be already created
     printf("File name:%s inode:%ld\n", filepath, inode_num);
     if(inode_num == 0){
-        //fs_create(filepath, mode, ffi, fp);
-        //inode_num = fs_namei(fp, filepath);
         printf("%s : No such file exists!\n", filepath);
         return -1;
     }
@@ -361,12 +423,8 @@ int fs_write(const char* filepath, long offset, const char* buffer, long size, F
     block_num block_no = 0;
     struct inode node;
     //read_inode(fp, inode_num, &node);
-    // Calculate from offset the block number and determine if it is direct, indirect block
     block_no = get_file_block_num(offset/BLOCK_SIZE, inode_num, true, fp);
     write_block(buffer, block_no, offset % BLOCK_SIZE, size, fp);
-    if(ferror(fp))
-        perror("Error writing data ");
-    fflush(fp);
     
     //write_inode(fp, inode_num, &node);
     printf("file write complete.\n");
