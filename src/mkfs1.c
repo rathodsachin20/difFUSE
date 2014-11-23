@@ -3,35 +3,36 @@
 
 void mkfs(const char* filepath){
     printf("IN FUNCION mkfs.\n");
-    //FILE* fp = fopen(filepath, "w+");
-    FILE* fp = fopen(filepath, "rw+");
-    if(fp == NULL){
-        printf("Error opening file: %s", filepath);
+    int fd = open(filepath, O_RDWR);
+    if(fd < 0){
+        printf("Error opening file: %s\t", filepath);
+        return;
     } 
-    fseek(fp, 0L, SEEK_END);
-    printf("opened file of size %ld\n", ftell(fp));
+    lseek(fd, 0L, SEEK_END);
     // Write size, num of free blocks etc to superblock
-    initialize_superblock(fp);
+    initialize_superblock(fd);
 
     // initialize inode structure
-    initalize_inodes(fp);
+    initalize_inodes();
 
     // initialize list of free blocks
-    initialize_free_blocks(superblock.size_fs, fp);
+    initialize_free_blocks(superblock.size_fs);
 
     // write superblock struct to disk after getting all parameters filled
     //write_superblock();  //looks like this is not needed, we can write it in initialization itself.
 
-    fclose(fp);
+    close(fd);
+    printf("MKFS finished.\n");
+    return;
 }
 
 
 /* Initialize superblock struct with initially known fields. Write size, num of free blocks etc.
 */
-void initialize_superblock(FILE* fp){
+void initialize_superblock(int fd){
     printf("IN FUNCION initialize_superblock.\n");
     struct superblock * sb = &superblock;
-    sb->size_fs = get_fs_size(fp);
+    sb->size_fs = get_fs_size(fd);
 
     long num_blocks = sb->size_fs / BLOCK_SIZE;
     sb->num_free_blocks = num_blocks - NUM_INODE_BLOCKS - 1;
@@ -51,24 +52,32 @@ void initialize_superblock(FILE* fp){
     sb->index_next_free_inode = FREE_INODES_LIST_SIZE - 1;
 
     sb->num_free_inodes = NUM_INODES;
-
-    write_block(&superblock, 0, 0, sizeof(struct superblock), fp);
+printf("writing\n");
+    write_block(&superblock, 0, 0, sizeof(struct superblock));
 
 }
 
 /* Get File system size -------- NEED TO IMPLEMENT
 */
-unsigned long get_fs_size(FILE* fp){
+unsigned long get_fs_size(int fd){
+    struct stat fileStat;
+    if(fstat(fd, &fileStat) < 0){
+        return -1;
+    }
+    printf("FILE SIZE IS:%ld\n", fileStat.st_size);
+    return fileStat.st_size;
+}
+/*unsigned long get_fs_size(FILE* fp){
     printf("IN FUNCION get_fs_size.\n");
     fseek(fp, 0L, SEEK_END);
     long size = ftell(fp);
     printf("FILE SIZE IS:%ld\n", size);
     return (size != -1 ? size : 0);
-}
+}*/
 
 /* Create struct inode for each inode. Initialize it and write to disk.
 */
-void initalize_inodes(FILE* fp){
+void initalize_inodes(){
     printf("IN FUNCION initialize_inodes.\n");
     struct inode inode;
     int i, j;
@@ -91,20 +100,20 @@ void initalize_inodes(FILE* fp){
         inode.double_indirect_block = 0;
         inode.triple_indirect_block = 0;
         inode.last_filled_block_index = 0;
-        write_inode(fp, i+1, &inode);
+        write_inode(i+1, &inode);
     }
 }
 
-void write_inode(FILE* fp, block_num inumber, struct inode* inodep){
+void write_inode(block_num inumber, struct inode* inodep){
     //printf("IN FUNCION write_inode.\n");
     // Position to seek. Inode number start from 1
     long block_no = ((inumber - 1) / (BLOCK_SIZE / INODE_SIZE)) + 1; //get blk num to write inode in
     short offset = ((inumber - 1) % (BLOCK_SIZE / INODE_SIZE)) * INODE_SIZE; //get offset in that blk
-    write_block(inodep, block_no, offset, sizeof(struct inode), fp);
+    write_block(inodep, block_no, offset, sizeof(struct inode));
 
 }
 
-void write_block(const void* buffer, block_num num, int offset, int size, FILE* fp){
+void write_block(const void* buffer, block_num num, int offset, int size){
     if(offset >= BLOCK_SIZE){
         return;
     }
@@ -113,17 +122,17 @@ void write_block(const void* buffer, block_num num, int offset, int size, FILE* 
         size =  BLOCK_SIZE - offset;
     }
     char read_buff[BLOCK_SIZE];
-    get_block(read_buff, num, fp);
+    get_block(read_buff, num);
     memcpy(&read_buff[offset], buffer, size);
     //printf("Buffer:%s. Readbuff:%s\n", (char*)buffer, read_buff);
-    put_block(read_buff, num, fp);
+    put_block(read_buff, num);
 }
 
 /* Initialize list of free blocks. Fill link data blocks with entries for free blocks.
 *  
 */ 
-void initialize_free_blocks(long size_fs, FILE* fp){
-    //printf("IN FUNCION initialize_free_blocks.\n");
+void initialize_free_blocks(long size_fs){
+    printf("IN FUNCION initialize_free_blocks.\n");
     long start = 1 + NUM_INODE_BLOCKS;
     //long current  = start;
     long num_blocks = size_fs / BLOCK_SIZE;
@@ -147,7 +156,7 @@ void initialize_free_blocks(long size_fs, FILE* fp){
             }
 
         }
-    write_block(&free_list, i, 0, sizeof(struct block_list), fp);
+    write_block(&free_list, i, 0, sizeof(struct block_list));
     //fseek(fp, BLOCK_SIZE*i, SEEK_SET);
     //struct block_list mylist;
     //int bytes = fread(&mylist, 1, sizeof(struct block_list), fp);
@@ -189,7 +198,7 @@ void initialize_free_blocks(long size_fs, FILE* fp){
     }
     free(block);
     */
-
+    printf("Finished initialize free blocks\n");
 }
 
 

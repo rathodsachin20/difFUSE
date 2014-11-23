@@ -12,6 +12,7 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include <time.h>
+#include <unistd.h>
 
 #define BLOCK_SIZE 512
 #define NUM_INODES 15
@@ -26,6 +27,8 @@
 #define MAX_FILE_NAME_LEN 32
 #define NAMEI_ENTRY_SIZE 32 // block size should be multiple of this
 //#define is_bigendian() ( (*(char*)&i) == 0 )
+
+int fs_desc;
 
 typedef unsigned long block_num;
 typedef int8_t bool;

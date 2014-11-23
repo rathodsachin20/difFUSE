@@ -43,33 +43,33 @@ int main(){
     printf("LARGETEXT:%s\n", largetext);
 
     printf("11th:%c...\n", text[11]);
-    fs_create_dir("/", mode, fp); // Move creation of root dir to mkfs
+    fs_create_dir("/", mode); // Move creation of root dir to mkfs
 
-    fs_create("/tt.txt", mode, fp );
-    fs_write("/tt.txt", 0, text, 11, fp);
+    fs_create("/tt.txt", mode );
+    fs_write("/tt.txt", 0, text, 11);
     char read_buff[15];
-    fs_read("/tt.txt", read_buff, 11, 0, fp);
+    fs_read("/tt.txt", read_buff, 11, 0);
     printf(" FILE 1 CONTENTS:%s\n\n\n", read_buff);
 
     char text1[] = "I am back!";
-    fs_create("/ss.txt", mode, fp );
-    fs_write("/ss.txt", 0, text1, 11, fp);
+    fs_create("/ss.txt", mode);
+    fs_write("/ss.txt", 0, text1, 11);
     char read_buff1[15];
-    fs_read("/ss.txt", read_buff1, 11, 0, fp);
+    fs_read("/ss.txt", read_buff1, 11, 0);
     printf(" FILE 2 CONTENTS:%s\n\n\n", read_buff1);
 
     strcpy(read_buff, "Garbage!!");
-    fs_read("/tt.txt", read_buff, 11, 0, fp);
+    fs_read("/tt.txt", read_buff, 11, 0);
     printf(" FILE 1 CONTENTS:%s\n\n\n", read_buff);
 
-    fs_create("/large.txt", mode, fp );
-    fs_write("/large.txt", 0, largetext, LARGE_SIZE, fp);
+    fs_create("/large.txt", mode);
+    fs_write("/large.txt", 0, largetext, LARGE_SIZE);
     char read_buff_large[LARGE_SIZE];
-    fs_read("/large.txt", read_buff_large, LARGE_SIZE, 0, fp);
+    fs_read("/large.txt", read_buff_large, LARGE_SIZE, 0);
     printf(" FILE 4 CONTENTS:%s\n\n\n", read_buff_large);
 
 
-    fclose(fp);
+    
 
     return 0;
 }

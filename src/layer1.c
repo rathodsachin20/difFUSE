@@ -2,7 +2,7 @@
 
 /* Get a new inode struct
 */
-block_num allocate_inode(FILE* fp, struct inode* nodep){
+block_num allocate_inode(struct inode* nodep){
     struct superblock* sb = &superblock;
     block_num inode_num;
     int16_t index = sb->index_next_free_inode;
@@ -39,7 +39,7 @@ block_num allocate_inode(FILE* fp, struct inode* nodep){
                 //printf("Curr_inode_num=%ld\n", curr_inode_num);
                 if(curr_index < 0)
                     break;
-                read_inode(fp, curr_inode_num, &curr_inode);
+                read_inode(curr_inode_num, &curr_inode);
                 if(curr_inode.type == 0){
                     //printf("Free inode_num=%ld\n", curr_inode_num);
                     sb->list_free_inodes[curr_index] = curr_inode_num;
@@ -55,9 +55,9 @@ block_num allocate_inode(FILE* fp, struct inode* nodep){
             }
         }
     }
-    read_inode(fp, inode_num, nodep);
+    read_inode(inode_num, nodep);
     nodep->type = 1;
-    write_inode(fp, inode_num, nodep);
+    write_inode(inode_num, nodep);
     printf("Giving inode no. %ld\t", inode_num);
     sb->num_free_inodes -= 1;
     return inode_num;
@@ -65,7 +65,7 @@ block_num allocate_inode(FILE* fp, struct inode* nodep){
 
 /* Free an inode in use. Add it to free inodes list.
 */
-void free_inode(FILE* fp, block_num inumber){
+void free_inode(block_num inumber){
     if(inumber > 1 + NUM_INODES || inumber <1){
         return;
     }
@@ -73,7 +73,7 @@ void free_inode(FILE* fp, block_num inumber){
     printf("<----------- FREEING INODE NO %ld ------------->\n", inumber);
     //struct inode node;
     //node.type = 0;
-    //write_inode(fp, inumber, &node);
+    //write_inode(inumber, &node);
     
     // Update cached free inodes list in superblock
     struct superblock * sb = &superblock;
@@ -90,7 +90,7 @@ void free_inode(FILE* fp, block_num inumber){
         else{ // inode not entered in cached list, need to write back to disk
             struct inode node;
             node.type = 0;
-            write_inode(fp, inumber, &node);
+            write_inode(inumber, &node);
         }
     }
     
@@ -98,17 +98,17 @@ void free_inode(FILE* fp, block_num inumber){
 
 /* Read contents of inode into inode struct
 */
-void read_inode(FILE* fp, block_num inode_num, struct inode* nodep){
+void read_inode(block_num inode_num, struct inode* nodep){
     if(inode_num < 1 || inode_num > NUM_INODES){
         printf("Invalid Inode Number.\n");
         return;
     }
     block_num block_no = ((inode_num - 1) / (BLOCK_SIZE/INODE_SIZE)) + 1;
     int offset = ((inode_num - 1) % (BLOCK_SIZE/INODE_SIZE)) * INODE_SIZE;
-    read_block((void*) nodep, block_no, offset, sizeof(struct inode), fp);
+    read_block((void*) nodep, block_no, offset, sizeof(struct inode));
 }
 
-block_num allocate_block(FILE* fp){
+block_num allocate_block(){
     struct superblock* sb;
     sb = &superblock;
     int16_t index = sb->index_next_free_block;
@@ -126,8 +126,8 @@ block_num allocate_block(FILE* fp){
         printf("List is now empty, refill it\n");
         // We can copy list into superblock so that superblock is locked for less time
         //block_num newlist[FREE_BLOCKS_LIST_SIZE];
-        //get_new_free_blocks_list(&newlist, block_no, fp);
-        update_free_blocks_list(sb, block_no, fp);
+        //get_new_free_blocks_list(&newlist, block_no );
+        update_free_blocks_list(sb, block_no);
         block_no = sb->list_free_blocks[FREE_BLOCKS_LIST_SIZE-1];
         sb->index_next_free_block = FREE_BLOCKS_LIST_SIZE-2;
         //int i;
@@ -141,7 +141,7 @@ block_num allocate_block(FILE* fp){
 
 /* Free a block in use. Add it to free blocks list.
 */
-void free_block(FILE* fp, block_num block_no){
+void free_block(block_num block_no){
     printf("<------FREEING BLOCK NO %ld---->\n", block_no);
     if(block_no < 1 + NUM_INODE_BLOCKS){
         return;
@@ -161,12 +161,12 @@ void free_block(FILE* fp, block_num block_no){
         for(i=1; i<BLOCK_SIZE/sizeof(block_num); i++){
             bl.list[i] = 0L;
         }
-        write_link_block(fp, block_no, &bl);
+        write_link_block(block_no, &bl);
     }
 }
 
-int read_block(void* buffer, block_num num, int offset, int size, FILE* fp){
-    //get_block(buffer, num, fp);
+int read_block(void* buffer, block_num num, int offset, int size){
+    //get_block(buffer, num );
     if(offset >= BLOCK_SIZE){
         return -1;
     }
@@ -175,23 +175,22 @@ int read_block(void* buffer, block_num num, int offset, int size, FILE* fp){
         size =  BLOCK_SIZE - offset;
     }
     char read_buff[BLOCK_SIZE];
-    get_block(read_buff, num, fp);
+    get_block(read_buff, num);
     memcpy(buffer, &read_buff[offset], size);
-    if(ferror(fp))
-        return -1;
+
     return size;
 }
 
 /* Write a link block (block that contains list of free blocks) to the disk.
 */
-void write_link_block(FILE* fp, block_num num, struct block_list* bl){
-    write_block(bl, num, 0, sizeof(struct block_list), fp);
+void write_link_block(block_num num, struct block_list* bl){
+    write_block(bl, num, 0, sizeof(struct block_list));
 }
 
 // TODO:Need to handle scenario when filesystem is full
 /* Update cached list of free blocks when the list becomes empty.
 */
-void update_free_blocks_list(struct superblock* sb, block_num block_no, FILE* fp){
+void update_free_blocks_list(struct superblock* sb, block_num block_no){
     int i;
     struct block_list bl;
     block_num curr_block = block_no;
@@ -200,13 +199,13 @@ void update_free_blocks_list(struct superblock* sb, block_num block_no, FILE* fp
     block_num* list = sb->list_free_blocks;
     while(curr_block){
         printf("curr block num=%ld\n", curr_block);
-        read_block((void*)&bl, curr_block, 0, sizeof(struct block_list), fp);
+        read_block((void*)&bl, curr_block, 0, sizeof(struct block_list));
         
         for(i = num_entries-1; i >= 0; i--){
             if(curr_index == 0){
                 list[0] = curr_block;
                 //break;
-                write_link_block(fp, curr_block, &bl);
+                write_link_block(curr_block, &bl);
                 return;
             }
             else
@@ -214,7 +213,7 @@ void update_free_blocks_list(struct superblock* sb, block_num block_no, FILE* fp
                     list[1] = curr_block;
                     list[0] = bl.list[i];
                     //break;
-                    write_link_block(fp, curr_block, &bl);
+                    write_link_block(curr_block, &bl);
                     return;
                 }
                 else
@@ -235,7 +234,7 @@ void update_free_blocks_list(struct superblock* sb, block_num block_no, FILE* fp
                             //    for( ; curr_index>=0; curr_index--){
                             //        list[curr_index] = 0;
                             //    }
-                            //    write_link_block(fp, curr_block, &bl);
+                            //    write_link_block(curr_block, &bl);
                             //    return;
                             //}
                             //bl.list[0] = 0; //not needed
@@ -255,28 +254,28 @@ void update_free_blocks_list(struct superblock* sb, block_num block_no, FILE* fp
     
 }
 
-block_num allocate_block_list(FILE* fp){
-    block_num block_no = allocate_block(fp);
+block_num allocate_block_list(){
+    block_num block_no = allocate_block();
     if(!block_no) return 0;
     struct directory dir;
-    write_block(&dir, block_no, 0, sizeof(struct block_list), fp);
+    write_block(&dir, block_no, 0, sizeof(struct block_list));
     return block_no;
 }
 
-int read_block_list(void* bl, block_num bn, FILE* fp){
-    return read_block(&bl, bn, 0, sizeof(struct block_list), fp);
+int read_block_list(void* bl, block_num bn){
+    return read_block(&bl, bn, 0, sizeof(struct block_list));
 }
 
-void write_block_list(const void* bl, block_num bn, FILE* fp){
-    write_block(&bl, bn, 0, sizeof(struct block_list), fp);
+void write_block_list(const void* bl, block_num bn){
+    write_block(&bl, bn, 0, sizeof(struct block_list));
 }
 
-void initialize_dir_block(block_num block_no, FILE* fp){
+void initialize_dir_block(block_num block_no){
     struct directory dir;
     int i;
     for(i=0; i<BLOCK_SIZE/NAMEI_ENTRY_SIZE; i++){
         dir.inode_num[i] = 0;
         strcpy(dir.name[i], "");
     }
-    write_block(&dir, block_no, 0, sizeof(struct directory), fp);
+    write_block(&dir, block_no, 0, sizeof(struct directory));
 }
