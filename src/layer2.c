@@ -29,7 +29,6 @@ block_num get_file_block_num(int block_index, block_num inode_num, bool allocate
     read_inode(fp, inode_num, &node);
     //block_num block_index = offset / BLOCK_SIZE;
     block_num block_no = 0;
-    int i;
     int n = BLOCK_SIZE / sizeof(block_num); // Number of entries per blocks
     if(block_index < INODE_NUM_DIRECT_BLOCKS){
         block_no = node.direct_blocks[block_index];
@@ -374,7 +373,7 @@ int fs_read(const char *filepath, char *buf, size_t count, off_t offset, FILE* f
     inode_num = fs_namei(fp, filepath);
     if(inode_num == 0){
         printf("%s:file does not exist.\n", filepath);
-        return 0;
+        return -ENOENT;
     }
     struct inode node;
     read_inode(fp, inode_num, &node);
@@ -411,20 +410,20 @@ int fs_read(const char *filepath, char *buf, size_t count, off_t offset, FILE* f
 int fs_write(const char* filepath, long offset, const char* buffer, long size, FILE* fp){
     if(size <= 0) return -1;
     block_num inode_num = fs_namei(fp, filepath);
-    mode_t mode = NULL; // TODO: Change this to defaults
+    //mode_t mode = NULL; // TODO: Change this to defaults
     
     // Write expects file to be already created
     printf("File name:%s inode:%ld\n", filepath, inode_num);
     if(inode_num == 0){
         printf("%s : No such file exists!\n", filepath);
-        return -1;
+        return -ENOENT;
     }
 
     struct inode node;
     read_inode(fp, inode_num, &node);
     if(node.file_size > 0){
         printf("File Already exists with non-zero size!!\n");
-        return;
+        return -1;
     }
 
     int num_blocks = ((size-1) / BLOCK_SIZE) + 1;
@@ -451,3 +450,66 @@ int fs_write(const char* filepath, long offset, const char* buffer, long size, F
     return 0;
 }
 
+int fs_getattr(const char* filepath, struct stat* stbuf, FILE* fp){
+    int res = 0;
+
+    memset(stbuf, 0, sizeof(struct stat));
+    if (strcmp(filepath, "/") == 0) { // Path is root dir TODO:for any dir
+        stbuf->st_mode = S_IFDIR | 0755;
+        stbuf->st_nlink = 2;
+    } else if (strncmp(filepath, "/",1) == 0) { //Path starts with root
+        block_num inode_no = fs_namei(fp, filepath);
+        if(inode_no == 0){
+            res = -ENOENT;
+            return res;
+        }
+        struct inode node;
+        read_inode(fp, inode_no, &node);
+        stbuf->st_mode = S_IFREG | 0444;
+        stbuf->st_nlink = 1;
+        stbuf->st_size = node.file_size;
+    } else
+        res = -ENOENT;
+
+    return res;
+}
+
+int fs_readdir(const char *filepath, void *buf, fuse_fill_dir_t filler,
+             off_t offset, struct fuse_file_info *fi, FILE* fp)
+{
+    (void) offset;
+    (void) fi;
+
+    if (strcmp(filepath, "/") != 0)
+        return -ENOENT;
+
+    block_num inode_no = fs_namei(fp, filepath);
+    if(inode_no == 0){
+        return -ENOENT;
+    }
+    struct inode node;
+    read_inode(fp, inode_no, &node);
+    int n = 0;
+    struct directory dir;
+
+    while(n <= node.last_filled_block_index){
+            block_num block_no = get_file_block_num(n, inode_no, false, fp);
+            if(block_no == 0){
+                continue;
+            }
+            read_block(&dir, block_no, 0, sizeof(struct directory), fp);
+            int i;
+            for(i=0; i<BLOCK_SIZE/NAMEI_ENTRY_SIZE; i++){
+                //printf("\n file entry:%s.", dir.name[i]);
+                if(dir.inode_num != 0 ){
+                    filler(buf, dir.name[i], NULL, 0);
+                }
+            }
+            n++;
+        }
+    //filler(buf, ".", NULL, 0);
+    //filler(buf, "..", NULL, 0);
+    //filler(buf, hello_path + 1, NULL, 0);
+
+    return 0;
+}

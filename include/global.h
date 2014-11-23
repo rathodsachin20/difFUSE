@@ -1,6 +1,8 @@
 #ifndef __global_h__
 #define __global_h__
 
+#define FUSE_USE_VERSION 26
+
 #include <fcntl.h>
 #include <stdio.h>
 #include <string.h>

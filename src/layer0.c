@@ -13,6 +13,7 @@ int get_block(void* buffer, block_num num, FILE* fp){
         return -1;
     }
     fflush(fp);
+    return BLOCK_SIZE;
 }
 
 void put_block(const void* buffer, block_num num, FILE* fp){

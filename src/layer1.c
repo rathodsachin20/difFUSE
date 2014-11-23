@@ -48,7 +48,6 @@ block_num allocate_inode(FILE* fp, struct inode* nodep){
                 curr_inode_num++;
                 if(curr_inode_num == NUM_INODES){
                     //printf("Last inode added. curr_index=%d\n",curr_index);
-                    int i;
                     for(; curr_index>=0; curr_index--){
                         sb->list_free_inodes[curr_index] = 0;
                     }
@@ -169,7 +168,7 @@ void free_block(FILE* fp, block_num block_no){
 int read_block(void* buffer, block_num num, int offset, int size, FILE* fp){
     //get_block(buffer, num, fp);
     if(offset >= BLOCK_SIZE){
-        return;
+        return -1;
     }
     // Read data only within block boundary
     if(offset+size >= BLOCK_SIZE){
@@ -181,21 +180,6 @@ int read_block(void* buffer, block_num num, int offset, int size, FILE* fp){
     if(ferror(fp))
         return -1;
     return size;
-}
-
-void write_block(const void* buffer, block_num num, int offset, int size, FILE* fp){
-    if(offset >= BLOCK_SIZE){
-        return;
-    }
-    // Write data only within block boundary
-    if(offset+size >= BLOCK_SIZE){
-        size =  BLOCK_SIZE - offset;
-    }
-    char read_buff[BLOCK_SIZE];
-    get_block(read_buff, num, fp);
-    memcpy(&read_buff[offset], buffer, size);
-    //printf("Buffer:%s. Readbuff:%s\n", (char*)buffer, read_buff);
-    put_block(read_buff, num, fp);
 }
 
 /* Write a link block (block that contains list of free blocks) to the disk.

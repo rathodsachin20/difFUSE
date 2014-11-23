@@ -103,6 +103,22 @@ void write_inode(FILE* fp, block_num inumber, struct inode* inodep){
     write_block(inodep, block_no, offset, sizeof(struct inode), fp);
 
 }
+
+void write_block(const void* buffer, block_num num, int offset, int size, FILE* fp){
+    if(offset >= BLOCK_SIZE){
+        return;
+    }
+    // Write data only within block boundary
+    if(offset+size >= BLOCK_SIZE){
+        size =  BLOCK_SIZE - offset;
+    }
+    char read_buff[BLOCK_SIZE];
+    get_block(read_buff, num, fp);
+    memcpy(&read_buff[offset], buffer, size);
+    //printf("Buffer:%s. Readbuff:%s\n", (char*)buffer, read_buff);
+    put_block(read_buff, num, fp);
+}
+
 /* Initialize list of free blocks. Fill link data blocks with entries for free blocks.
 *  
 */ 

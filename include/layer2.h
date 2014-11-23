@@ -25,4 +25,10 @@ int fs_read(const char *filepath, char *buf, size_t count, off_t offset, FILE* f
 
 int fs_write(const char* filepath, long offset, const char* buffer, long size, FILE* fp);
 
+int fs_getattr(const char* filepath, struct stat* stbuf, FILE* fp);
+
+int fs_readdir(const char *filepath, void *buf, fuse_fill_dir_t filler,
+             off_t offset, struct fuse_file_info *fi, FILE* fp);
+
+
 #endif /* __layer2_h__  */

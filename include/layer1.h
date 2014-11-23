@@ -22,7 +22,7 @@ void free_block(FILE* fp, block_num block_no);
 
 int read_block(void* buffer, block_num num, int offset, int size, FILE* fp);
 
-void write_block(const void* buffer, block_num num, int offset, int size, FILE* fp);
+//void write_block(const void* buffer, block_num num, int offset, int size, FILE* fp);
 
 void write_link_block(FILE* fp, block_num num, struct block_list* bl);
 
