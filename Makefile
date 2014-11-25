@@ -2,10 +2,11 @@ OBJDIR = ./obj
 BINDIR = ./bin
 SRCDIR = ./src
 INCDIR = ./include
-
-CC = gcc -I$(INCDIR)
-CFLAGS = -D_FILE_OFFSET_BITS=64
-LDFLAGS = -D_FILE_OFFSET_BITS=64
+CC = gcc -I$(INCDIR) 
+FUSEFLAGS = $(shell echo `pkg-config fuse --cflags --libs`)
+#CFLAGS = -Wall -D_FILE_OFFSET_BITS=64 `pkg-config fuse --cflags --libs`
+CFLAGS = -Wall
+LDFLAGS = -Wall
 #SSOURCES = temp.c temp1.c
 #SOURCES = $(patsubst %, $(SRCDIR)/%, $(SSOURCES))
 ##OOBJ = $(SSOURCES:.c=.o)
@@ -17,17 +18,20 @@ OBJ = $(patsubst %, $(OBJDIR)/%, $(OOBJ))
 
 all: $(BINDIR)/exec
 
+debug: CC += -g
+debug: $(BINDIR)/exec
+
 #$(EXEC): $(OBJ) 
 #	$(CC) $(LDFLAGS) $(OBJ) -o $@
 $(BINDIR)/exec: $(OBJ)
 #	$(CC) $(LDFLAGS) $^ -o $@ $(BINDIR)/exec
-	$(CC) $(LDFLAGS) $(OBJ) -o $(BINDIR)/exec
+	$(CC) $(LDFLAGS) $(OBJ) -o $(BINDIR)/exec $(FUSEFLAGS)
 
 #$(OBJDIR)/%.o: $(SRCDIR)/%.c $(DEPS)
 #	$(CC) -c $(CFLAGS) -o $@ $<
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
-	$(CC) -c $(CFLAGS) -o $@ $<
+	$(CC) -c $(CFLAGS) -o $@ $< $(FUSEFLAGS)
 
 #$(OBJ): $(SOURCES)
 #	$(CC) -c $(CFLAGS) -o $@ $<

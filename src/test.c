@@ -5,7 +5,7 @@
 #define LARGE_SIZE 1024
 
 int main(){
-    int size = 1024*100;
+    int size = 1024*1024*10;
     FILE * fp = fopen("test.txt", "w+");
     fseek(fp, size, SEEK_SET);
     fputc('\n', fp);

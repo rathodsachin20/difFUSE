@@ -135,7 +135,7 @@ block_num allocate_block(){
         //    sb->list_free_blocks[i] = newlist[i];
         //}
     }
-    printf("Gave block num %ld", block_no);
+    printf("Gave block num %ld\n", block_no);
     return block_no;
 }
 
@@ -171,7 +171,7 @@ int read_block(void* buffer, block_num num, int offset, int size){
         return -1;
     }
     // Read data only within block boundary
-    if(offset+size >= BLOCK_SIZE){
+    if(offset+size > BLOCK_SIZE){
         size =  BLOCK_SIZE - offset;
     }
     char read_buff[BLOCK_SIZE];
@@ -263,11 +263,11 @@ block_num allocate_block_list(){
 }
 
 int read_block_list(void* bl, block_num bn){
-    return read_block(&bl, bn, 0, sizeof(struct block_list));
+    return read_block(bl, bn, 0, sizeof(struct block_list));
 }
 
 void write_block_list(const void* bl, block_num bn){
-    write_block(&bl, bn, 0, sizeof(struct block_list));
+    write_block(bl, bn, 0, sizeof(struct block_list));
 }
 
 void initialize_dir_block(block_num block_no){

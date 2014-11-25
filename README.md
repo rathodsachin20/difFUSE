@@ -10,6 +10,7 @@ To Compile:
   make
 
 To Run:
-  bin/exec
+  mkdir tmp
+  bin/exec tmp
 
 

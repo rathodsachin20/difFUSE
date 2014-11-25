@@ -20,10 +20,10 @@
 #define INODE_SIZE 256
 #define INODE_NUM_DIRECT_BLOCKS 10
 #define INODE_NUM_INDIRECT_ADDRS 4
-#define FREE_BLOCKS_LIST_SIZE 4
-#define FREE_INODES_LIST_SIZE 20
+#define FREE_BLOCKS_LIST_SIZE 20
+#define FREE_INODES_LIST_SIZE 10
 #define NUM_INODE_BLOCKS (NUM_INODES * INODE_SIZE) / BLOCK_SIZE + 1
-#define MAX_NUM_FILE 10 
+#define MAX_NUM_FILE 100
 #define MAX_FILE_NAME_LEN 32
 #define NAMEI_ENTRY_SIZE 32 // block size should be multiple of this
 //#define is_bigendian() ( (*(char*)&i) == 0 )

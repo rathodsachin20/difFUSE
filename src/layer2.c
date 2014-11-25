@@ -31,6 +31,7 @@ block_num get_file_block_num(int block_index, block_num inode_num, bool allocate
     block_num block_no = 0;
     int n = BLOCK_SIZE / sizeof(block_num); // Number of entries per blocks
     if(block_index < INODE_NUM_DIRECT_BLOCKS){
+        printf("Direct block.\n");
         block_no = node.direct_blocks[block_index];
         if(block_no == 0){
             if( allocate ){
@@ -49,6 +50,7 @@ block_num get_file_block_num(int block_index, block_num inode_num, bool allocate
         }
     }
     else if(block_index < (INODE_NUM_DIRECT_BLOCKS + n)){ // Single indirect
+        printf("Single Indirect block.\n");
         int index = block_index -  INODE_NUM_DIRECT_BLOCKS;
         block_num indirect_block_no = node.single_indirect_block;
         if(indirect_block_no != 0){
@@ -70,7 +72,7 @@ block_num get_file_block_num(int block_index, block_num inode_num, bool allocate
         }
     }
     else if(block_index < (INODE_NUM_DIRECT_BLOCKS + n + n*n)){ // Double Indirect :O
-        
+        printf("Double Indirect block.\n");
         int dd_index = block_index - INODE_NUM_DIRECT_BLOCKS - n;
         int d_index = dd_index / n;
         int s_index = dd_index % n;
@@ -105,6 +107,7 @@ block_num get_file_block_num(int block_index, block_num inode_num, bool allocate
 
     }
     else if(block_index < (INODE_NUM_DIRECT_BLOCKS + n + n*n+ n*n*n)){ // Triple Indirect :O :O
+        printf("Triple Indirect block.\n");
         int tt_index = block_index - INODE_NUM_DIRECT_BLOCKS - n - n*n;
         int t_index = tt_index / n*n;
         int d_index = (tt_index % (n*n)) / n;
@@ -156,7 +159,7 @@ block_num get_file_block_num(int block_index, block_num inode_num, bool allocate
         printf("File Max Size Limit Reached!!!");
         block_no = 0;
     }
-    printf("get_file_block_no returning:%ld", block_no);
+    printf("get_file_block_no returning:%ld\n", block_no);
     return block_no;
 }
 
@@ -267,7 +270,7 @@ block_num fs_namei(const char* filep){
                 }
                 n++;
                 if(!found){
-                    printf("PATH NOT FOUND!!!");
+                    printf("%s:PATH NOT FOUND!!!\n", filepath);
                     return 0;
                 }
             }
@@ -454,10 +457,20 @@ int fs_getattr(const char* filepath, struct stat* stbuf){
     int res = 0;
 
     memset(stbuf, 0, sizeof(struct stat));
-    if (strcmp(filepath, "/") == 0) { // Path is root dir TODO:for any dir
+    if (strcmp(filepath, "/") == 0) { // Path is a directory TODO:currently only root. do for any dir
+        printf("getattr path dir:%s\n", filepath);
+        block_num inode_no = fs_namei(filepath);
+        if(inode_no == 0){
+            res = -ENOENT;
+            return res;
+        }
+        struct inode node;
+        read_inode(inode_no, &node);
         stbuf->st_mode = S_IFDIR | 0755;
         stbuf->st_nlink = 2;
-    } else if (strncmp(filepath, "/",1) == 0) { //Path starts with root
+        stbuf->st_size = node.file_size;
+    } else if (filepath[0] == '/') { //Path is a file that starts with root
+        printf("getattr path file:%s\n", filepath);
         block_num inode_no = fs_namei(filepath);
         if(inode_no == 0){
             res = -ENOENT;
@@ -480,7 +493,7 @@ int fs_readdir(const char *filepath, void *buf, fuse_fill_dir_t filler,
     (void) offset;
     (void) fi;
 
-    if (strcmp(filepath, "/") != 0)
+    if (filepath[0] != '/')
         return -ENOENT;
 
     block_num inode_no = fs_namei(filepath);
@@ -498,12 +511,19 @@ int fs_readdir(const char *filepath, void *buf, fuse_fill_dir_t filler,
                 continue;
             }
             read_block(&dir, block_no, 0, sizeof(struct directory));
-            int i;
+            int i = 0;
+            //struct stat stbuf;
+            //stbuf.st_nlink = 1;
+            //stbuf.st_size = 111;
+            //stbuf.st_mode = S_IFREG; //TODO: take this parameter from inode
             for(i=0; i<BLOCK_SIZE/NAMEI_ENTRY_SIZE; i++){
                 //printf("\n file entry:%s.", dir.name[i]);
-                if(dir.inode_num != 0 ){
+                if(dir.inode_num[i] != 0 ){
+                    //filler(buf, dir.name[i], &stbuf, 0);
                     filler(buf, dir.name[i], NULL, 0);
-                }
+                    //printf("file:%s\n", dir.name[i]);
+
+                }    
             }
             n++;
         }
