@@ -7,48 +7,67 @@
 
 static int dif_getattr(const char *path, struct stat *stbuf)
 {
-	return fs_getattr(path, stbuf);
+    return fs_getattr(path, stbuf);
 }
 
 static int dif_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
-			 off_t offset, struct fuse_file_info *fi)
+             off_t offset, struct fuse_file_info *fi)
 {
-	return fs_readdir(path, buf, filler, offset, fi);
+    return fs_readdir(path, buf, filler, offset, fi);
 }
 
 static int dif_read(const char *path, char *buf, size_t size, off_t offset,
-		      struct fuse_file_info *fi)
+              struct fuse_file_info *fi)
 {
-	(void) fi;
+    (void) fi;
     int read_size = fs_read(path, buf, size, offset);
-	return read_size;
+    return read_size;
 }
 
 static int dif_write(const char *path, const char *buf, size_t size, off_t offset,
-		      struct fuse_file_info *fi)
+              struct fuse_file_info *fi)
 {
-	(void) fi;
+    (void) fi;
     int write_size = fs_write(path, offset, buf, size);
-	return write_size;
+    return write_size;
+}
+
+static int dif_create(const char *path, mode_t mode, struct fuse_file_info *fi)
+{
+    (void) fi;
+    if (fs_namei(path) != 0)
+        return -ENOENT;
+    return fs_create(path, mode);
+
 }
 
 static int dif_open(const char *path, struct fuse_file_info *fi)
 {
-	if (fs_namei(path) == 0)
-		return -ENOENT;
+    if (fs_namei(path) == 0)
+        return -ENOENT;
 
-	if ((fi->flags & 3) != O_RDONLY)
-		return -EACCES;
+    if ((fi->flags & 3) != O_RDONLY)
+        return -EACCES;
 
-	return 0;
+    return 0;
+}
+
+static int dif_release(const char *path, struct fuse_file_info *fi)
+{
+    if (fs_namei(path) == 0)
+        return -ENOENT;
+
+    return 0;
 }
 
 static struct fuse_operations dif_oper = {
-	.getattr	= dif_getattr,
-	.readdir	= dif_readdir,
-	.open		= dif_open,
-	.read		= dif_read,
-	.write		= dif_write,
+    .getattr    = dif_getattr,
+    .readdir    = dif_readdir,
+//    .open       = dif_open,
+//    .release    = dif_release,
+    .read       = dif_read,
+    .create     = dif_create,
+    .write      = dif_write,
 };
 
 int main(int argc, char *argv[])
@@ -70,7 +89,8 @@ int main(int argc, char *argv[])
     char text[] = "Hello world";
     char largetext[LARGE_SIZE];
     int i;
-    mode_t mode = NULL;
+    mode_t mode_d = S_IFDIR | 0777;
+    mode_t mode = S_IFREG | 0666;
     for(i=0; i<LARGE_SIZE; i++){
         largetext[i] = (char)(i%26+63);
     }
@@ -78,7 +98,7 @@ int main(int argc, char *argv[])
     //printf("LARGETEXT:%s\n", largetext);
 
     printf("11th:%c...\n", text[11]);
-    fs_create_dir("/", mode); // Move creation of root dir to mkfs
+    fs_create_dir("/", mode_d); // Move creation of root dir to mkfs
 
     fs_create("/tt.txt", mode );
     fs_write("/tt.txt", 0, text, 11);
@@ -102,7 +122,7 @@ int main(int argc, char *argv[])
     char read_buff_large[LARGE_SIZE];
     fs_read("/large.txt", read_buff_large, LARGE_SIZE, 0);
     read_buff_large[LARGE_SIZE-1] = '\0';
-    printf(" FILE 4 CONTENTS:%s\n\n\n", read_buff_large);
+    //printf(" FILE 4 CONTENTS:%s\n\n\n", read_buff_large);
 
 //char buf[10240];
 //fuse_fill_dir_t filler;
@@ -115,5 +135,5 @@ int main(int argc, char *argv[])
     //fp = (FILE*)opendir("/home/sachin/euca/diffuse/src/t");
     //fp = (FILE*)opendir("/home/sachin/euca/diffuse/src/t");
     //printf("fp:%p\n",fp);
-	return fuse_main(argc, argv, &dif_oper, NULL);
+    return fuse_main(argc, argv, &dif_oper, NULL);
 }

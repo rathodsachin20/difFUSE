@@ -40,7 +40,7 @@ block_num allocate_inode(struct inode* nodep){
                 if(curr_index < 0)
                     break;
                 read_inode(curr_inode_num, &curr_inode);
-                if(curr_inode.type == 0){
+                if(curr_inode.mode == 0){
                     //printf("Free inode_num=%ld\n", curr_inode_num);
                     sb->list_free_inodes[curr_index] = curr_inode_num;
                     curr_index--;
@@ -56,7 +56,8 @@ block_num allocate_inode(struct inode* nodep){
         }
     }
     read_inode(inode_num, nodep);
-    nodep->type = 1;
+    //nodep->type = 1;
+    //nodep->mode = S_IFREG;
     write_inode(inode_num, nodep);
     printf("Giving inode no. %ld\t", inode_num);
     sb->num_free_inodes -= 1;
@@ -89,7 +90,7 @@ void free_inode(block_num inumber){
         }
         else{ // inode not entered in cached list, need to write back to disk
             struct inode node;
-            node.type = 0;
+            node.mode = 0;
             write_inode(inumber, &node);
         }
     }

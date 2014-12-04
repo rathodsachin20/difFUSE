@@ -299,7 +299,12 @@ int fs_create(const char *filepath, mode_t mode){
     read_inode(inode_num, &node);
     node.owner_id = 121 ;
     node.group_id = 1;
-    node.type = 1;
+    //node.type = 1;
+    if(mode) node.mode = mode;
+    else{
+        node.mode = 0 | S_IFREG;
+        node.mode = node.mode | S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH;
+    }
     node.last_filled_block_index = -1;
     //node.file_modified = time(0);
     //node.direct_blocks[0] = 0; //TODO: this should not be needed
@@ -338,7 +343,12 @@ int fs_create_dir(const char *filepath, mode_t mode){
     node.last_filled_block_index = 0;
     node.owner_id = 121 ;
     node.group_id = 1;
-    node.type = 2;
+    //node.type = 2;
+    if(mode) node.mode = mode;
+    else{
+        node.mode = 0 | S_IFDIR;
+        node.mode = node.mode | S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH;
+    }
     //node.file_modified = time(0);
     write_inode(inode_num, &node);
     return 0;
@@ -466,7 +476,8 @@ int fs_getattr(const char* filepath, struct stat* stbuf){
         }
         struct inode node;
         read_inode(inode_no, &node);
-        stbuf->st_mode = S_IFDIR | 0755;
+        //stbuf->st_mode = S_IFDIR | 0755;
+        stbuf->st_mode = node.mode;
         stbuf->st_nlink = 2;
         stbuf->st_size = node.file_size;
     } else if (filepath[0] == '/') { //Path is a file that starts with root
@@ -478,7 +489,8 @@ int fs_getattr(const char* filepath, struct stat* stbuf){
         }
         struct inode node;
         read_inode(inode_no, &node);
-        stbuf->st_mode = S_IFREG | 0444;
+        //stbuf->st_mode = S_IFREG | 0444;
+        stbuf->st_mode = node.mode;
         stbuf->st_nlink = 1;
         stbuf->st_size = node.file_size;
     } else
@@ -512,15 +524,15 @@ int fs_readdir(const char *filepath, void *buf, fuse_fill_dir_t filler,
             }
             read_block(&dir, block_no, 0, sizeof(struct directory));
             int i = 0;
-            //struct stat stbuf;
+            struct stat stbuf;
             //stbuf.st_nlink = 1;
             //stbuf.st_size = 111;
-            //stbuf.st_mode = S_IFREG; //TODO: take this parameter from inode
+            stbuf.st_mode = node.mode; //TODO: take this parameter from inode
             for(i=0; i<BLOCK_SIZE/NAMEI_ENTRY_SIZE; i++){
                 //printf("\n file entry:%s.", dir.name[i]);
                 if(dir.inode_num[i] != 0 ){
-                    //filler(buf, dir.name[i], &stbuf, 0);
-                    filler(buf, dir.name[i], NULL, 0);
+                    filler(buf, dir.name[i], &stbuf, 0);
+                    //filler(buf, dir.name[i], NULL, 0);
                     //printf("file:%s\n", dir.name[i]);
 
                 }    
