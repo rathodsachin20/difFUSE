@@ -234,8 +234,8 @@ block_num get_parent_inode_num(const char* filepath){
     fpath[pathlen - fpath] = '\0';
     strncpy(fpath, filepath, pathlen - fpath);
     const char* dirpath = fpath;
+    //return dir inode number
     return fs_namei(dirpath);
-    
 }
 
 
