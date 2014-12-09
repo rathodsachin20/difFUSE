@@ -86,8 +86,9 @@ void initalize_inodes(){
         //inode->inumber = i;
         inode.owner_id = -1;
         inode.group_id = -1;
-        inode.type = (char)0;
-        inode.perms = (int16_t)0;
+        //inode.type = (char)0;
+        //inode.perms = (int16_t)0;
+        inode.mode = 0;
         inode.accessed = 0.0;
         inode.file_modified = 0.0;
         inode.inode_modified = 0.0;

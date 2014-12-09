@@ -53,8 +53,9 @@ struct inode{
     //unsigned inode_number; //may not be needed
     uint16_t owner_id;
     uint16_t group_id;
-    uint8_t type;
-    int16_t perms;
+    //uint8_t type;
+    //int16_t perms;
+    mode_t mode;
     float accessed;
     float file_modified;
     float inode_modified;
