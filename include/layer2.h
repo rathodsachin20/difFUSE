@@ -15,6 +15,8 @@ block_num get_parent_inode_num(const char* filepath);
 
 block_num fs_namei(const char* filep);
 
+int fs_unlink(const char* filepath);
+
 int fs_create(const char *filepath, mode_t mode);
 
 int fs_create_dir(const char *filepath, mode_t mode);

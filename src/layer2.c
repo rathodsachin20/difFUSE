@@ -564,6 +564,7 @@ int fs_readdir(const char *filepath, void *buf, fuse_fill_dir_t filler,
 
 int fs_unlink(const char* filepath){
     
+    printf("Unlinking........\n");
     block_num inode_num = fs_namei(filepath);
     if(inode_num == 0){
 	printf("can not delete.. %s : file doesn't exit", filepath);
