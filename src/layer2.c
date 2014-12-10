@@ -646,46 +646,62 @@ int fs_unlink(const char* filepath){
     free_inode(inode_num);
     return 0;
 }
-/*
+
 int fs_rmdir(const char* filepath){
     block_num  inode_num = fs_namei(filepath);
     struct inode dir_inode;
     read_inode(inode_num, &dir_inode);
-    if(!S_ISDIR(dir_node.mode)){
+    if(!S_ISDIR(dir_inode.mode)){
 	printf("%s: not a directory, can't delete",filepath);
 	return -1;
     }
     
-
     struct directory dir;
-    block_num dir_last_block = dir_inode.last_filled_block_index;
+    block_num dir_last_index = dir_inode.last_filled_block_index;
     block_num n = 0;
-    int i,j;
-
-
-    for(n=0; n<=dir_last_block; n++){
-	for(i=0;i<INODE_NUM_DIR_BLOCKS; i++){
-	    read_block(&dir, dir_inode.direct_blocks[i],0, sizeof(struct directory));
-	    for(j=0; j<BLOCK_SIZE/NAMEI_ENTRY_SIZE; j++){
+    block_num block_no;
+    int j;
+    
+    for(n=2; n<=dir_last_index; n++){
+	block_no = get_file_block_num(i, inode_num, false){
+	read_block(&dir, block_no, 0, sizeof(struct directory));
+	
+	for(j=0; j<BLOCK_SIZE/NAMEI_ENTRY_SIZE; j++){	
+		if(dir.inode_num[j] == 0 )
+		    continue;
+		else {
+		    printf("directory is not empty");
+		    return -1;
+		}
+		/*
 		struct inode node;
 		read_inode(dir.inode_num[j], node);
+		
+		//append filename to file path
+		int len = strlen(filepath);
+		char* path = (char*) malloc(sizeof(char)*(len+1));
+		strcpy(path, filepath);
+		const char* slash = "/";
+		strcat(path, slash);
+		strcat(path,dir.name[i]);
+		const char* filepath_const = 
+
 		if(S_ISDIR(node.mode))
-		    fs_rmdir( //filepath );
+		    fs_rmdir(path);
 		else
-		    fs_unlink( //filepath );
+		    fs_unlink(path);
+
+		write_inode(dir.inode_num[j], &node);
 	    }
+	    
 
-	}
-
+	write_block(&dir, block_no, 0, sizeof(struct directory));
+	*/
     }
-
 
     free_inode(dir_inode);
     return 0;
 }
-*/
-
-
 
 int fs_mod_time(const char* path, const struct timespec tv[2]){
     block_num inode_num = fs_namei(path);
