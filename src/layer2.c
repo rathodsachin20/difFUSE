@@ -598,6 +598,7 @@ int fs_unlink(const char* filepath){
 	    }
 	}
     }
+    write_inode(pinode_num, &pinode);
 
     struct inode node;
     read_inode(inode_num, &node);
