@@ -576,6 +576,7 @@ int fs_unlink(const char* filepath){
     read_inode(pinode_num, &pinode);
     
     for(i=0; i<INODE_NUM_DIRECT_BLOCKS && !parent_entry_freed; i++){
+	printf("trying to unlink parent inode entry\n");
 	if(pinode.direct_blocks[i] == 0){
 	    printf("file entry not found in directory:%s",filepath);
 	    break;
