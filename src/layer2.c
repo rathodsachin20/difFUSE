@@ -572,7 +572,6 @@ int fs_unlink(const char* filepath){
     
     int i,j, parent_entry_freed = 0;
     struct inode pinode;
-    struct directory dir;
     block_num pinode_num = get_parent_inode_num(filepath);
     read_inode(pinode_num, &pinode);
     
@@ -582,11 +581,13 @@ int fs_unlink(const char* filepath){
 	    break;
 	}
 
+	struct directory dir;
         read_block(&dir,pinode.direct_blocks[i],0,sizeof(struct directory));
 	for(j=0; j< BLOCK_SIZE/NAMEI_ENTRY_SIZE; j++){
 	    if(dir.inode_num[j] == inode_num){
 	       dir.inode_num[j] = 0;
 	       parent_entry_freed=1;
+	       printf("inode unlinked from parent directory");
 	       break;
 	    }
 	}
