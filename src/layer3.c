@@ -63,7 +63,7 @@ static int dif_mkdir(const char *path, mode_t mode)
 {
     if(fs_namei(path) == 0)
 	return -ENOENT;
-    return fs_create_dir(path, mode)
+    return fs_create_dir(path, mode);
 }
 
 static struct fuse_operations dif_oper = {
