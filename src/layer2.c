@@ -392,6 +392,8 @@ int fs_read(const char *filepath, char *buf, size_t count, off_t offset){
      if(inode->file_size < offset)
      return error;
      */
+    //if (count>BLOCK_SIZE)
+    //    count = BLOCK_SIZE;
     block_num inode_num = 0;
     block_num block_no = 0;
     int read_count = 0;
@@ -432,7 +434,9 @@ int fs_read(const char *filepath, char *buf, size_t count, off_t offset){
         if(read_count < BLOCK_SIZE) break;
         index++;
     }
-    return read_offset;
+    //return read_offset;
+    printf("READ NO OF BYTES:%ld............\n", read_offset);
+    return count;
 }
 
 int fs_write(const char* filepath, long offset, const char* buffer, size_t size){
@@ -451,7 +455,7 @@ int fs_write(const char* filepath, long offset, const char* buffer, size_t size)
     read_inode(inode_num, &node);
     if(node.file_size > 0){
         printf("File Already exists with non-zero size!!\n");
-        return -1;
+        //return -1;
     }
 
     int num_blocks = ((size-1) / BLOCK_SIZE) + 1;
@@ -459,19 +463,22 @@ int fs_write(const char* filepath, long offset, const char* buffer, size_t size)
 
     int i;
     //long remaining = size;
+    int sbi = offset/BLOCK_SIZE; // Start block index
     long buff_offset = 0;
-    for( i=0; i<num_blocks-1; i++){
+    printf("write:::: offset:%d:size:%ld",offset,size);
+    for( i=sbi; i<sbi+num_blocks-1; i++){
         block_no = get_file_block_num(i, inode_num, true);
-        write_block(&buffer[buff_offset], block_no, 0, BLOCK_SIZE);
+        write_block(&buffer[buff_offset], block_no, offset%BLOCK_SIZE, BLOCK_SIZE);
         buff_offset += BLOCK_SIZE;
+        offset=0;
     }
     size_t remaining = size - buff_offset;
-    block_no = get_file_block_num(num_blocks-1, inode_num, true);
+    block_no = get_file_block_num(sbi+num_blocks-1, inode_num, true);
     size_t last_size = write_block(&buffer[buff_offset], block_no, 0, remaining);
 
     read_inode(inode_num, &node); // Always read just before modifying!!
-    node.last_filled_block_index = num_blocks -1;
-    node.file_size = size;
+    node.last_filled_block_index = sbi+num_blocks -1;
+    node.file_size += size;
     
     write_inode(inode_num, &node);
     printf("file write complete.\n");

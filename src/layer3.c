@@ -29,9 +29,9 @@ static int dif_write(const char *path, const char *buf, size_t size, off_t offse
 {
     (void) fi;
     mode_t mode = 0;
-    if (fs_namei(path) == 0){
-        fs_create(path, mode);
-    }
+    //if (fs_namei(path) == 0){
+    //    fs_create(path, mode);
+    //}
     printf("Writing %d bytes\n", (int)size);
     int write_size = fs_write(path, offset, buf, size);
     printf("Wrote %d bytes\n", write_size);
@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
     //printf(" FILE 1 CONTENTS:%s\n\n\n", read_buff);
 
     //int LARGE_SIZE = 512*(64*64+64+20); //TRIPLE INDIRECT
-    int LARGE_SIZE = 512*(64*64+64+20);
+    int LARGE_SIZE = 512*(6+20);
     char largetext[LARGE_SIZE];
     int i;
     for(i=0; i<LARGE_SIZE; i++){
@@ -145,8 +145,8 @@ int main(int argc, char *argv[])
     fs_create("/large.txt", mode);
     fs_write("/large.txt", 0, largetext, LARGE_SIZE);
     char read_buff_large[LARGE_SIZE];
-    fs_read("/large.txt", read_buff_large, LARGE_SIZE, 0);
-    read_buff_large[LARGE_SIZE-1] = '\0';
+    //fs_read("/large.txt", read_buff_large, LARGE_SIZE, 0);
+    //read_buff_large[LARGE_SIZE-1] = '\0';
     //printf(" FILE 4 CONTENTS:%s\n\n\n", read_buff_large);
 
 //char buf[10240];
