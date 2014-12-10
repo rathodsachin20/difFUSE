@@ -75,7 +75,7 @@ struct inode{
 */
 struct block_list{
     block_num list[BLOCK_SIZE/sizeof(block_num)];
-}block_list;
+};
 
 struct directory{
     block_num inode_num[BLOCK_SIZE/NAMEI_ENTRY_SIZE];

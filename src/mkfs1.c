@@ -37,6 +37,7 @@ void initialize_superblock(int fd){
     long num_blocks = sb->size_fs / BLOCK_SIZE;
     sb->num_free_blocks = num_blocks - NUM_INODE_BLOCKS - 1;
 
+    printf("No. of free blocks---->%ld\n",sb->num_free_blocks);
     // Initialize list of cached free blocks
     int i;
     for(i = 1; i < FREE_BLOCKS_LIST_SIZE; i++)
@@ -84,8 +85,8 @@ void initalize_inodes(){
 
     for(i = 0; i < NUM_INODES; i++){
         //inode->inumber = i;
-        inode.owner_id = -1;
-        inode.group_id = -1;
+        inode.owner_id = 0;
+        inode.group_id = 0;
         //inode.type = (char)0;
         //inode.perms = (int16_t)0;
         inode.mode = 0;
@@ -116,7 +117,7 @@ void write_inode(block_num inumber, struct inode* inodep){
 
 size_t write_block(const void* buffer, block_num num, int offset, int size){
     if(offset >= BLOCK_SIZE){
-        return;
+        return 0;
     }
     // Write data only within block boundary
     if(offset+size >= BLOCK_SIZE){
@@ -138,15 +139,15 @@ void initialize_free_blocks(long size_fs){
     //long current  = start;
     long num_blocks = size_fs / BLOCK_SIZE;
     //printf("num_blocks=%ld\n", num_blocks);
-    int num_entries = BLOCK_SIZE / sizeof(long);
+    int num_entries = BLOCK_SIZE / sizeof(block_num);
 
-    struct block_list free_list;
+    struct block_list free_list={};
     int i, j;
     for(i=start; i<num_blocks; i+=num_entries){
         if(i <= num_blocks-num_entries){
             for(j=0; j<num_entries; j++){
                 free_list.list[j] = i-j+num_entries;
-                //printf("Entry: Block[%d][%d]=%ld\t", i, j, free_list.list[j]);
+                if(i<start+2*num_entries)printf("Entry: Block[%d][%d]=%ld\t", i, j, free_list.list[j]);
             }
         }
         else{
