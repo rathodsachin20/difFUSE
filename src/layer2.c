@@ -613,12 +613,12 @@ int fs_unlink(const char* filepath){
     struct inode node;
     read_inode(inode_num, &node);
     int last = node.last_filled_block_index;
+    block_num block_no;
 
     for(i=0; i<=last;i++){
-	if(node.direct_blocks[i] ==0)
-	    continue;
-	else
-	    free_block(node.direct_blocks[i]);
+	block_no = get_file_block_num(i, inode_num,false);
+	if(block_no !=0)
+	    free_block(block_no);
     }
 
     free_inode(inode_num);
