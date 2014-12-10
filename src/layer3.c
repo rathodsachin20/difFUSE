@@ -28,7 +28,7 @@ static int dif_write(const char *path, const char *buf, size_t size, off_t offse
               struct fuse_file_info *fi)
 {
     (void) fi;
-    mode_t mode;
+    mode_t mode = 0;
     if (fs_namei(path) == 0){
         fs_create(path, mode);
     }
@@ -93,25 +93,20 @@ int main(int argc, char *argv[])
     fseek(fp, 0L, SEEK_END);
     printf("created file of size %ld\n", ftell(fp));
     fclose(fp);
+    int j=0;
+    for(j=0;j<argc;j++){
+        printf("ARGS===>%d:%s\n", j, argv[j]);
+    }
 
     fs_desc = open("test1.txt", O_RDWR|O_CREAT );
-
-    mkfs("test1.txt");
-
-    int LARGE_SIZE = 512*40;
-    char text[] = "Hello world";
-    char largetext[LARGE_SIZE];
-    int i;
     mode_t mode_d = S_IFDIR | 0777;
     mode_t mode = S_IFREG | 0666;
-    for(i=0; i<LARGE_SIZE; i++){
-        largetext[i] = (char)(i%26+63);
-    }
-    largetext[i] = '\0';
-    //printf("LARGETEXT:%s\n", largetext);
 
-    printf("11th:%c...\n", text[11]);
+    mkfs("test1.txt");
     fs_create_dir("/", mode_d); // Move creation of root dir to mkfs
+
+    char text[] = "Hello world";
+
 
     fs_create("/tt.txt", mode );
     fs_write("/tt.txt", 0, text, 11);
@@ -122,14 +117,23 @@ int main(int argc, char *argv[])
     char text1[] = "I am back!";
     fs_create("/ss.txt", mode);
     fs_write("/ss.txt", 0, text1, 11);
-    //char read_buff1[15];
-    //fs_read("/ss.txt", read_buff1, 11, 0);
-    //printf(" FILE 2 CONTENTS:%s\n\n\n", read_buff1);
+    char read_buff1[15];
+    fs_read("/ss.txt", read_buff1, 11, 0);
+    printf(" FILE 2 CONTENTS:%s\n\n\n", read_buff1);
 
     //strcpy(read_buff, "Garbage!!");
     //fs_read("/tt.txt", read_buff, 11, 0);
     //printf(" FILE 1 CONTENTS:%s\n\n\n", read_buff);
 
+    //int LARGE_SIZE = 512*(64*64+64+20); //TRIPLE INDIRECT
+    int LARGE_SIZE = 512*(64*64+64+20);
+    char largetext[LARGE_SIZE];
+    int i;
+    for(i=0; i<LARGE_SIZE; i++){
+        largetext[i] = (char)(i%26+63);
+    }
+    largetext[i] = '\0';
+    //printf("LARGETEXT:%s\n", largetext);
     fs_create("/large.txt", mode);
     fs_write("/large.txt", 0, largetext, LARGE_SIZE);
     char read_buff_large[LARGE_SIZE];

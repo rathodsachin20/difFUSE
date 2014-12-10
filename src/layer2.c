@@ -6,9 +6,11 @@
 *  Allocates new block is 'allocate' is true and block did not exist.
 */
 block_num get_block_in_list(block_num indirect_block_no, int index, bool allocate){
+        printf("--get_blokc_inList--%d--",index);
     struct block_list indirect_bl;
     read_block_list(&indirect_bl, indirect_block_no);
     block_num block_no = indirect_bl.list[index];
+    printf("blockn0-%ld-",block_no);
     if(block_no == 0 && allocate){
         block_no = allocate_block();
         if(!block_no) return 0;
@@ -254,7 +256,7 @@ block_num fs_namei(const char* filep){
     fname = strtok(filepath,"/");
     
     if(strncmp(&filepath[0],"/",1)==0){
-        printf("in fs_namei: path starts with root.\n");
+        printf("in fs_namei: path starts with root.%s\n",filepath);
         while(fname != NULL){
             printf("in directory: %s\n", fname);            
             read_inode(inode_no, &working_inode);
@@ -306,14 +308,14 @@ int fs_create(const char *filepath, mode_t mode){
     strncpy(fname, &filepath[pch - filepath + 1], len);
 
 
-    struct inode node;
+    struct inode node = {};
     block_num inode_num = allocate_inode(&node);
     printf("in fs_create: got inode no. %ld", inode_num);
     read_inode(inode_num, &node);
-    node.owner_id = 121 ;
-    node.group_id = 1;
+    //node.owner_id = 0 ;
+    //node.group_id = 0;
     //node.type = 1;
-    if(mode) node.mode = mode;
+    if(mode) node.mode = mode|S_IFREG;
     else{
         node.mode = 0 | S_IFREG;
         node.mode = node.mode | S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH;
@@ -335,7 +337,7 @@ int fs_create_dir(const char *filepath, mode_t mode){
     if(filepath == NULL)
         return -1; //have to check how to return error number
 
-    struct inode node;
+    struct inode node = {};
     block_num inode_num = allocate_inode(&node);
     printf("in fs_create_dir: got inode no. %ld\n", inode_num);
 
@@ -533,8 +535,10 @@ int fs_readdir(const char *filepath, void *buf, fuse_fill_dir_t filler,
     int n = 0;
     struct directory dir;
 
+    //printf("Readdir last index of file %s:%ld",filepath,node.last_filled_block_index);
     while(n <= node.last_filled_block_index){
             block_num block_no = get_file_block_num(n, inode_no, false);
+            //printf("readdir %s next - %dth block:%ld",filepath,n,block_no);
             if(block_no == 0){
                 continue;
             }

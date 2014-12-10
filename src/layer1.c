@@ -89,7 +89,7 @@ void free_inode(block_num inumber){
             sb->list_free_inodes[0] = inumber;
         }
         else{ // inode not entered in cached list, need to write back to disk
-            struct inode node;
+            struct inode node = {};
             node.mode = 0;
             write_inode(inumber, &node);
         }
@@ -155,13 +155,13 @@ void free_block(block_num block_no){
         sb->index_next_free_block = index;
     }
     else{// Change link from sb[0]->x to sb[0]->block_no->x
-        int i;
-        struct block_list bl;
+        //int i;
+        struct block_list bl = {};
         bl.list[0] = sb->list_free_blocks[0];
         sb->list_free_blocks[0] = block_no;
-        for(i=1; i<BLOCK_SIZE/sizeof(block_num); i++){
-            bl.list[i] = 0L;
-        }
+        //for(i=1; i<BLOCK_SIZE/sizeof(block_num); i++){
+        //    bl.list[i] = 0L;
+        //}
         write_link_block(block_no, &bl);
     }
 }
@@ -193,7 +193,7 @@ void write_link_block(block_num num, struct block_list* bl){
 */
 void update_free_blocks_list(struct superblock* sb, block_num block_no){
     int i;
-    struct block_list bl;
+    struct block_list bl = {};
     block_num curr_block = block_no;
     int curr_index = FREE_BLOCKS_LIST_SIZE-1;
     int num_entries = BLOCK_SIZE/sizeof(block_num);
@@ -201,21 +201,47 @@ void update_free_blocks_list(struct superblock* sb, block_num block_no){
     while(curr_block){
         printf("curr block num=%ld\n", curr_block);
         read_block((void*)&bl, curr_block, 0, sizeof(struct block_list));
+    printf("Printing this block:\n");
+    for(i=0;i<num_entries;i++){
+        printf("%ld--", bl.list[i]);
+    }
         
         for(i = num_entries-1; i >= 0; i--){
             if(curr_index == 0){
+                printf("allocate_block:curr_index is 0.next link block:%ld\n",curr_block);
+                printf("list[1]:%ld\n",list[1]);
                 list[0] = curr_block;
                 //break;
                 write_link_block(curr_block, &bl);
                 return;
             }
             else
-                if(curr_index == 1  &&  i == 0){
+                /*if(curr_index == 1  &&  i == 0){
                     list[1] = curr_block;
                     list[0] = bl.list[i];
                     //break;
                     write_link_block(curr_block, &bl);
                     return;
+                }*/
+                if(curr_index == 1){
+     printf("allocate_block:curr_index is 1:curr_block%ld\n",curr_block);
+                    while(bl.list[i]==0 && i>0){
+                        i--;
+                    }
+                    if(i==0){
+                        list[1] = curr_block;
+                        list[0] = bl.list[i];
+                        printf("--list[1]:%ld\n",list[1]);
+                        //break;
+                        write_link_block(curr_block, &bl);
+                        return;
+                    }
+                    else{
+                        list[1] = bl.list[i];
+                        bl.list[i]=0;
+                        curr_index--;
+                        continue;
+                    }
                 }
                 else
                     if(bl.list[i]){
@@ -258,8 +284,14 @@ void update_free_blocks_list(struct superblock* sb, block_num block_no){
 block_num allocate_block_list(){
     block_num block_no = allocate_block();
     if(!block_no) return 0;
-    struct directory dir;
-    write_block(&dir, block_no, 0, sizeof(struct block_list));
+    //struct directory dir;
+    struct block_list bl = {};
+    int i;
+    for(i=0; i<(BLOCK_SIZE/sizeof(block_num)); i++){
+        printf("**direntry[%d]:%ld**",i,bl.list[i]);
+        //bl.list[i] = 0;
+    }
+    write_block(&bl, block_no, 0, sizeof(struct block_list));
     return block_no;
 }
 
@@ -272,7 +304,7 @@ void write_block_list(const void* bl, block_num bn){
 }
 
 void initialize_dir_block(block_num block_no){
-    struct directory dir;
+    struct directory dir = {};
     int i;
     for(i=0; i<BLOCK_SIZE/NAMEI_ENTRY_SIZE; i++){
         dir.inode_num[i] = 0;
