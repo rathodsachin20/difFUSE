@@ -565,3 +565,106 @@ int fs_readdir(const char *filepath, void *buf, fuse_fill_dir_t filler,
 
     return 0;
 }
+
+int fs_unlink(const char* filepath){
+    
+    block_num inode_num = fs_namei(filepath);
+    if(inode_num == 0){
+	printf("can not delete.. %s : file doesn't exit", filepath);
+	return -1;
+    }
+    
+    int i,j, parent_entry_freed = 0;
+    struct inode pinode;
+    block_num pinode_num = get_parent_inode_num(filepath);
+    read_inode(pinode_num, &pinode);
+    
+    for(i=0; i<INODE_NUM_DIRECT_BLOCKS && !parent_entry_freed; i++){
+	printf("trying to unlink parent inode entry\n");
+	if(pinode.direct_blocks[i] == 0){
+	    printf("file entry not found in directory:%s",filepath);
+	    break;
+	}
+
+	struct directory dir;
+        read_block(&dir,pinode.direct_blocks[i],0,sizeof(struct directory));
+	for(j=0; j< BLOCK_SIZE/NAMEI_ENTRY_SIZE; j++){
+	    if(dir.inode_num[j] == inode_num){
+	       dir.inode_num[j] = 0;
+	       parent_entry_freed=1;
+	       printf("inode unlinked from parent directory");
+	       break;
+	    }
+	}
+    }
+
+    struct inode node;
+    read_inode(inode_num, &node);
+    int last = node.last_filled_block_index;
+    int freed_all=0;
+
+    for(i=0; i<INODE_NUM_DIRECT_BLOCKS && !freed_all; i++){
+	if(node.direct_blocks[i] == last)
+	    freed_all = 1;
+	if(node.direct_blocks[i] == 0)
+	    continue;
+	free_block(node.direct_blocks[i]);
+    }
+
+    if(!freed_all){
+	block_num indirect_block_no = node.single_indirect_block;
+	struct block_list indirect_bl;
+	read_block_list(&indirect_bl, indirect_block_no);
+	
+	for(i=0; i<BLOCK_SIZE/sizeof(block_num) && !freed_all; i++){
+	    if(indirect_bl.list[i] == last){
+		freed_all = 1;
+		break;
+	    }
+	    if(indirect_bl.list[i] == 0)
+		continue;
+	    free_block(indirect_bl.list[i]);
+	}
+    }
+
+    free_inode(inode_num);
+    return 0;
+}
+/*
+int fs_rmdir(const char* filepath){
+    block_num  inode_num = fs_namei(filepath);
+    struct inode dir_inode;
+    read_inode(inode_num, &dir_inode);
+    if(!S_ISDIR(dir_node.mode)){
+	printf("%s: not a directory, can't delete",filepath);
+	return -1;
+    }
+    
+
+    struct directory dir;
+    block_num dir_last_block = dir_inode.last_filled_block_index;
+    block_num n = 0;
+    int i,j;
+
+
+    for(n=0; n<=dir_last_block; n++){
+	for(i=0;i<INODE_NUM_DIR_BLOCKS; i++){
+	    read_block(&dir, dir_inode.direct_blocks[i],0, sizeof(struct directory));
+	    for(j=0; j<BLOCK_SIZE/NAMEI_ENTRY_SIZE; j++){
+		struct inode node;
+		read_inode(dir.inode_num[j], node);
+		if(S_ISDIR(node.mode))
+		    fs_rmdir( //filepath );
+		else
+		    fs_unlink( //filepath );
+	    }
+
+	}
+
+    }
+
+
+    free_inode(dir_inode);
+    return 0;
+}
+*/

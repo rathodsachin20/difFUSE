@@ -72,6 +72,13 @@ static int dif_mkdir(const char *path, mode_t mode)
     return fs_create_dir(path, mode);
 }
 
+static int dif_unlink(const char *path)
+{
+    if(fs_namei(path) == 0)
+	return -ENOENT;
+    return fs_unlink(path);
+}
+
 static struct fuse_operations dif_oper = {
     .getattr    = dif_getattr,
     .readdir    = dif_readdir,
@@ -81,6 +88,7 @@ static struct fuse_operations dif_oper = {
     .create     = dif_create,
     .write      = dif_write,
     .mkdir = dif_mkdir,
+    .unlink = dif_unlink,
 };
 
 int main(int argc, char *argv[])
