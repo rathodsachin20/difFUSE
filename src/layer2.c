@@ -589,6 +589,7 @@ int fs_unlink(const char* filepath){
 	       parent_entry_freed=1;
 	       break;
 	    }
+	}
     }
 
     struct inode node;
