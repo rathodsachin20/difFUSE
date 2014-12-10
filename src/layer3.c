@@ -85,6 +85,12 @@ static int dif_rmdir(const char* path){
     return fs_rmdir(path);
 }
 
+int dif_utimens(const char * path, const struct timespec tv[2]){
+    if(fs_namei(path) == 0)
+        return -ENOENT;
+    return fs_mod_time(path, tv);
+}
+
 static struct fuse_operations dif_oper = {
     .getattr    = dif_getattr,
     .readdir    = dif_readdir,
@@ -96,6 +102,7 @@ static struct fuse_operations dif_oper = {
     .mkdir = dif_mkdir,
     .unlink = dif_unlink,
     .rmdir = dif_rmdir,
+    .utimens = dif_utimens,
 };
 
 int main(int argc, char *argv[])

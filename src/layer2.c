@@ -321,6 +321,8 @@ int fs_create(const char *filepath, mode_t mode){
         node.mode = node.mode | S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH;
     }
     node.last_filled_block_index = -1;
+    node.accessed = time(0);
+    node.file_modified = time(0);
     //node.file_modified = time(0);
     //node.direct_blocks[0] = 0; //TODO: this should not be needed
     //node.direct_blocks[0] = allocate_block();
@@ -364,7 +366,8 @@ int fs_create_dir(const char *filepath, mode_t mode){
         node.mode = 0 | S_IFDIR;
         node.mode = node.mode | S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH;
     }
-    //node.file_modified = time(0);
+    node.accessed = time(0);
+    node.file_modified = time(0);
     write_inode(inode_num, &node);
     return 0;
 }
@@ -586,7 +589,7 @@ int fs_readdir(const char *filepath, void *buf, fuse_fill_dir_t filler,
             n++;
         }
     //filler(buf, ".", NULL, 0);
-    //filler(buf, "..", NULL, 0);
+        //filler(buf, "..", NULL, 0);
     //filler(buf, hello_path + 1, NULL, 0);
 
     return 0;
@@ -660,7 +663,7 @@ int fs_rmdir(const char* filepath){
     int j;
     
     for(n=2; n<=dir_last_index; n++){
-	block_no = get_file_block_num(i, inode_num, false){
+	block_no = get_file_block_num(n, inode_num, false);
 	read_block(&dir, block_no, 0, sizeof(struct directory));
 	
 	for(j=0; j<BLOCK_SIZE/NAMEI_ENTRY_SIZE; j++){	
@@ -694,8 +697,22 @@ int fs_rmdir(const char* filepath){
 
 	write_block(&dir, block_no, 0, sizeof(struct directory));
 	*/
+        }
     }
-
-    free_inode(dir_inode);
+    free_inode(inode_num);
     return 0;
 }
+
+int fs_mod_time(const char* path, const struct timespec tv[2]){
+    block_num inode_num = fs_namei(path);
+    if(inode_num == 0){
+        return -ENOENT;
+    }
+    struct inode node;
+    read_inode(inode_num, &node);
+    node.accessed = tv[0].tv_sec;
+    node.file_modified = tv[1].tv_sec;
+    write_inode(inode_num, &node);
+    return 0;
+}
+

@@ -14,18 +14,18 @@
 #include <time.h>
 #include <unistd.h>
 
-#define BLOCK_SIZE 512
-#define NUM_INODES 15
+#define BLOCK_SIZE 2048
+#define NUM_INODES 1024
 #define FS_MIN_SIZE 4096
 #define INODE_SIZE 256
 #define INODE_NUM_DIRECT_BLOCKS 10
 #define INODE_NUM_INDIRECT_ADDRS 4
-#define FREE_BLOCKS_LIST_SIZE 20
-#define FREE_INODES_LIST_SIZE 10
+#define FREE_BLOCKS_LIST_SIZE 150
+#define FREE_INODES_LIST_SIZE 50
 #define NUM_INODE_BLOCKS (NUM_INODES * INODE_SIZE) / BLOCK_SIZE + 1
-#define MAX_NUM_FILE 100
-#define MAX_FILE_NAME_LEN 32
-#define NAMEI_ENTRY_SIZE 32 // block size should be multiple of this
+//#define MAX_NUM_FILE 100
+#define MAX_FILE_NAME_LEN 56  //NAMEI_ENTRY_SIZE-sizeof(blocknum)
+#define NAMEI_ENTRY_SIZE 64 // block size should be multiple of this
 //#define is_bigendian() ( (*(char*)&i) == 0 )
 
 int fs_desc;
@@ -46,7 +46,7 @@ struct superblock{
     block_num list_free_inodes[FREE_INODES_LIST_SIZE];
     int16_t index_next_free_inode;
     
-    bool is_locked;
+   // bool is_locked;
 }superblock;
 
 struct inode{
@@ -56,9 +56,9 @@ struct inode{
     //uint8_t type;
     //int16_t perms;
     mode_t mode;
-    float accessed;
-    float file_modified;
-    float inode_modified;
+    time_t accessed;
+    time_t file_modified;
+    time_t inode_modified;
     uint16_t links_count;
     unsigned long file_size;
     // ? long int size_partition;
