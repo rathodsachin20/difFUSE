@@ -28,7 +28,13 @@ static int dif_write(const char *path, const char *buf, size_t size, off_t offse
               struct fuse_file_info *fi)
 {
     (void) fi;
+    mode_t mode;
+    if (fs_namei(path) == 0){
+        fs_create(path, mode);
+    }
+    printf("Writing %d bytes\n", (int)size);
     int write_size = fs_write(path, offset, buf, size);
+    printf("Wrote %d bytes\n", write_size);
     return write_size;
 }
 

@@ -433,7 +433,7 @@ int fs_read(const char *filepath, char *buf, size_t count, off_t offset){
     return read_offset;
 }
 
-int fs_write(const char* filepath, long offset, const char* buffer, long size){
+int fs_write(const char* filepath, long offset, const char* buffer, size_t size){
     if(size <= 0) return -1;
     block_num inode_num = fs_namei(filepath);
     //mode_t mode = NULL; // TODO: Change this to defaults
@@ -463,9 +463,9 @@ int fs_write(const char* filepath, long offset, const char* buffer, long size){
         write_block(&buffer[buff_offset], block_no, 0, BLOCK_SIZE);
         buff_offset += BLOCK_SIZE;
     }
-    long remaining = size - buff_offset;
+    size_t remaining = size - buff_offset;
     block_no = get_file_block_num(num_blocks-1, inode_num, true);
-    write_block(&buffer[buff_offset], block_no, 0, remaining);
+    size_t last_size = write_block(&buffer[buff_offset], block_no, 0, remaining);
 
     read_inode(inode_num, &node); // Always read just before modifying!!
     node.last_filled_block_index = num_blocks -1;
@@ -473,7 +473,10 @@ int fs_write(const char* filepath, long offset, const char* buffer, long size){
     
     write_inode(inode_num, &node);
     printf("file write complete.\n");
-    return 0;
+    if(last_size==remaining){
+        return size;
+    }
+    return size;
 }
 
 int fs_getattr(const char* filepath, struct stat* stbuf){
