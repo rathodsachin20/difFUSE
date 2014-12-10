@@ -592,26 +592,30 @@ int fs_unlink(const char* filepath){
 	for(j=0; j< BLOCK_SIZE/NAMEI_ENTRY_SIZE; j++){
 	    if(dir.inode_num[j] == inode_num){
 	       dir.inode_num[j] = 0;
+	       memset(dir.name[i],0,NAMEI_ENTRY_SIZE-sizeof(block_num));
 	       parent_entry_freed=1;
-	       printf("inode unlinked from parent directory");
+	       printf("inode unlinked from parent directory\n");
 	       break;
 	    }
 	}
     }
+   
     write_inode(pinode_num, &pinode);
 
     struct inode node;
     read_inode(inode_num, &node);
     int last = node.last_filled_block_index;
     int freed_all=0;
+    printf("freeing direc blocks\n");
 
     for(i=0; i<INODE_NUM_DIRECT_BLOCKS && !freed_all; i++){
-	if(node.direct_blocks[i] == last)
+	if(node.direct_blocks[i] == last+1)
 	    freed_all = 1;
 	if(node.direct_blocks[i] == 0)
 	    continue;
 	free_block(node.direct_blocks[i]);
     }
+    printf("free indirect blocks if: %d\n",freed_all);
 
     if(!freed_all){
 	block_num indirect_block_no = node.single_indirect_block;
