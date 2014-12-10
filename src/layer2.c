@@ -595,6 +595,7 @@ int fs_unlink(const char* filepath){
 	       memset(dir.name[i],0,NAMEI_ENTRY_SIZE-sizeof(block_num));
 	       parent_entry_freed=1;
 	       printf("inode unlinked from parent directory\n");
+	       write_block(&dir, pinode.direct_blocks[i], 0, sizeof(struct directory));
 	       break;
 	    }
 	}
