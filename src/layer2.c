@@ -606,31 +606,12 @@ int fs_unlink(const char* filepath){
     read_inode(inode_num, &node);
     int last = node.last_filled_block_index;
     int freed_all=0;
-    printf("freeing direc blocks\n");
 
-    for(i=0; i<INODE_NUM_DIRECT_BLOCKS && !freed_all; i++){
-	if(node.direct_blocks[i] == last+1)
-	    freed_all = 1;
-	if(node.direct_blocks[i] == 0)
+    while(i=0; i<=last;i++){
+	if(node.direct_blocks[i] ==0)
 	    continue;
-	free_block(node.direct_blocks[i]);
-    }
-    printf("free indirect blocks if: %d\n",freed_all);
-
-    if(!freed_all){
-	block_num indirect_block_no = node.single_indirect_block;
-	struct block_list indirect_bl;
-	read_block_list(&indirect_bl, indirect_block_no);
-	
-	for(i=0; i<BLOCK_SIZE/sizeof(block_num) && !freed_all; i++){
-	    if(indirect_bl.list[i] == last){
-		freed_all = 1;
-		break;
-	    }
-	    if(indirect_bl.list[i] == 0)
-		continue;
-	    free_block(indirect_bl.list[i]);
-	}
+	else
+	    free_block(node.direct_block[i]);
     }
 
     free_inode(inode_num);
