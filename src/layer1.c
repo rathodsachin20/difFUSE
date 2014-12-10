@@ -198,7 +198,12 @@ void update_free_blocks_list(struct superblock* sb, block_num block_no){
     int curr_index = FREE_BLOCKS_LIST_SIZE-1;
     int num_entries = BLOCK_SIZE/sizeof(block_num);
     block_num* list = sb->list_free_blocks;
+    block_num prev_block = 0;
     while(curr_block){
+        if(prev_block==curr_block){
+            break;
+        }
+        prev_block = curr_block;
         printf("curr block num=%ld\n", curr_block);
         read_block((void*)&bl, curr_block, 0, sizeof(struct block_list));
     printf("Printing this block:\n");

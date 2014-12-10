@@ -420,7 +420,9 @@ int fs_read(const char *filepath, char *buf, size_t count, off_t offset){
 
     block_no = get_file_block_num(index, inode_num, false);
     offset = offset % BLOCK_SIZE; // offset within first block
-    read_count = read_block(read_buff, block_no, offset, count);
+    int firstcount = (count>BLOCK_SIZE-offset)? BLOCK_SIZE-offset : count ;
+    read_count = read_block(read_buff, block_no, offset, firstcount);
+    int remaining = count - read_count;
     memcpy(buf, read_buff, read_count);
     read_offset += read_count;
     index++;
@@ -428,10 +430,14 @@ int fs_read(const char *filepath, char *buf, size_t count, off_t offset){
     while(index <= lastindex){ // File larger than one block
         block_no = get_file_block_num(index, inode_num, false);
         if(!block_no) continue;
-        read_count = read_block(read_buff, block_no, 0, BLOCK_SIZE);
+        if (remaining>BLOCK_SIZE)
+            read_count = read_block(read_buff, block_no, 0, BLOCK_SIZE);
+        else
+            read_count = read_block(read_buff, block_no, 0, remaining);
+        remaining -= read_count;
         memcpy(&buf[read_offset], read_buff, read_count);
         read_offset += read_count;
-        if(read_count < BLOCK_SIZE) break;
+        if(remaining<=0) break;
         index++;
     }
     //return read_offset;

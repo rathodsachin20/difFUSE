@@ -153,7 +153,7 @@ void initialize_free_blocks(long size_fs){
         else{
             for(j=0; j<num_entries; j++){
                 long value = i-j+num_entries;
-                free_list.list[j] = (value <= num_blocks ? value : 0);
+                free_list.list[j] = (value < num_blocks ? value : 0);
                 //printf("Entry: Block[%d][%d]=%ld\t", i, j, free_list.list[j]);
             }
 
