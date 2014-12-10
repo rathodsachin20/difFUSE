@@ -663,7 +663,7 @@ int fs_rmdir(const char* filepath){
     int j;
     
     for(n=2; n<=dir_last_index; n++){
-	block_no = get_file_block_num(i, inode_num, false){
+	block_no = get_file_block_num(n, inode_num, false);
 	read_block(&dir, block_no, 0, sizeof(struct directory));
 	
 	for(j=0; j<BLOCK_SIZE/NAMEI_ENTRY_SIZE; j++){	
@@ -697,9 +697,9 @@ int fs_rmdir(const char* filepath){
 
 	write_block(&dir, block_no, 0, sizeof(struct directory));
 	*/
+        }
     }
-
-    free_inode(dir_inode);
+    free_inode(inode_num);
     return 0;
 }
 
@@ -715,3 +715,4 @@ int fs_mod_time(const char* path, const struct timespec tv[2]){
     write_inode(inode_num, &node);
     return 0;
 }
+
