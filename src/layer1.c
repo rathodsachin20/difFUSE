@@ -236,7 +236,7 @@ void update_free_blocks_list(struct superblock* sb, block_num block_no){
                     if(i==0){
                         list[1] = curr_block;
                         list[0] = bl.list[i];
-                        printf("--list[1]:%ld\n",list[1]);
+                        //printf("--list[1]:%ld\n",list[1]);
                         //break;
                         write_link_block(curr_block, &bl);
                         return;
@@ -291,11 +291,11 @@ block_num allocate_block_list(){
     if(!block_no) return 0;
     //struct directory dir;
     struct block_list bl = {};
-    int i;
-    for(i=0; i<(BLOCK_SIZE/sizeof(block_num)); i++){
-        printf("**direntry[%d]:%ld**",i,bl.list[i]);
+    //int i;
+    //for(i=0; i<(BLOCK_SIZE/sizeof(block_num)); i++){
+        //printf("**direntry[%d]:%ld**",i,bl.list[i]);
         //bl.list[i] = 0;
-    }
+    //}
     write_block(&bl, block_no, 0, sizeof(struct block_list));
     return block_no;
 }

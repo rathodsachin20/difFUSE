@@ -93,7 +93,7 @@ static struct fuse_operations dif_oper = {
 
 int main(int argc, char *argv[])
 {
-    int size = 1024*1024*100;
+    int size = 1024*1024*1024*1;
     FILE* fp = fopen("test1.txt", "w+");
     if(ferror(fp)){perror("error ");}
     fseek(fp, size, SEEK_SET);
@@ -133,7 +133,7 @@ int main(int argc, char *argv[])
     //fs_read("/tt.txt", read_buff, 11, 0);
     //printf(" FILE 1 CONTENTS:%s\n\n\n", read_buff);
 
-    //int LARGE_SIZE = 512*(64*64+64+20); //TRIPLE INDIRECT
+    //int LARGE_SIZE = 3*(512/2)*(64*64+64+20); //TRIPLE INDIRECT - x*MB
     int LARGE_SIZE = 512*(6+20);
     char largetext[LARGE_SIZE];
     int i;

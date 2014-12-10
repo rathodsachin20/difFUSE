@@ -471,16 +471,29 @@ int fs_write(const char* filepath, long offset, const char* buffer, size_t size)
     //long remaining = size;
     int sbi = offset/BLOCK_SIZE; // Start block index
     long buff_offset = 0;
+    size_t write_count;
     printf("write:::: offset:%d:size:%ld",offset,size);
     for( i=sbi; i<sbi+num_blocks-1; i++){
         block_no = get_file_block_num(i, inode_num, true);
-        write_block(&buffer[buff_offset], block_no, offset%BLOCK_SIZE, BLOCK_SIZE);
+        if(block_no==0){
+            printf("File System Full??\n");
+            return 0;
+        }
+        write_count = write_block(&buffer[buff_offset], block_no, offset%BLOCK_SIZE, BLOCK_SIZE);
+        if(write_count<BLOCK_SIZE)
+            return write_count;
         buff_offset += BLOCK_SIZE;
         offset=0;
     }
     size_t remaining = size - buff_offset;
     block_no = get_file_block_num(sbi+num_blocks-1, inode_num, true);
-    size_t last_size = write_block(&buffer[buff_offset], block_no, 0, remaining);
+        if(block_no==0){
+            printf("File System Full??\n");
+            return 0;
+        }
+    write_count = write_block(&buffer[buff_offset], block_no, 0, remaining);
+        if(write_count<remaining)
+            return write_count;
 
     read_inode(inode_num, &node); // Always read just before modifying!!
     node.last_filled_block_index = sbi+num_blocks -1;
@@ -488,7 +501,7 @@ int fs_write(const char* filepath, long offset, const char* buffer, size_t size)
     
     write_inode(inode_num, &node);
     printf("file write complete.\n");
-    if(last_size==remaining){
+    if(write_count==remaining){
         return size;
     }
     return size;
