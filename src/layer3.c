@@ -38,7 +38,6 @@ static int dif_create(const char *path, mode_t mode, struct fuse_file_info *fi)
     if (fs_namei(path) != 0)
         return -ENOENT;
     return fs_create(path, mode);
-
 }
 
 static int dif_open(const char *path, struct fuse_file_info *fi)
@@ -60,6 +59,13 @@ static int dif_release(const char *path, struct fuse_file_info *fi)
     return 0;
 }
 
+static int dif_mkdir(const char *path, mode_t mode)
+{
+    if(fs_namei(path) == 0)
+	return -ENOENT;
+    return fs_create_dir(path, mode)
+}
+
 static struct fuse_operations dif_oper = {
     .getattr    = dif_getattr,
     .readdir    = dif_readdir,
@@ -68,6 +74,7 @@ static struct fuse_operations dif_oper = {
     .read       = dif_read,
     .create     = dif_create,
     .write      = dif_write,
+    .mkdir = dif_mkdir,
 };
 
 int main(int argc, char *argv[])
