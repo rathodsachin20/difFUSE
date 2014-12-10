@@ -61,8 +61,8 @@ static int dif_release(const char *path, struct fuse_file_info *fi)
 
 static int dif_mkdir(const char *path, mode_t mode)
 {
-    if(fs_namei(path) == 0)
-	return -ENOENT;
+    if(fs_namei(path) != 0)
+        return -ENOENT;
     return fs_create_dir(path, mode);
 }
 

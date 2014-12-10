@@ -229,8 +229,8 @@ block_num get_parent_inode_num(const char* filepath){
     int len = strlen(filepath);
     char *fpath = (char *) malloc(sizeof(char)*(len+1));
     strcpy(fpath,filepath);
-    if(fpath[len-1])=='/'{
-        fpath[len-1] = '\0'
+    if(fpath[len-1]=='/' && len>1){
+        fpath[len-1] = '\0';
     }
     //get dir path
     char* pathlen = strrchr(fpath,'/');
@@ -357,7 +357,7 @@ int fs_create_dir(const char *filepath, mode_t mode){
     node.owner_id = 121 ;
     node.group_id = 1;
     //node.type = 2;
-    if(mode) node.mode = mode;
+    if(mode) node.mode = mode|S_IFDIR;
     else{
         node.mode = 0 | S_IFDIR;
         node.mode = node.mode | S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH;
