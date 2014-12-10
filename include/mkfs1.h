@@ -10,7 +10,7 @@ void initialize_superblock(int fd);
 unsigned long get_fs_size(int fd);
 void initalize_inodes();
 void write_inode(block_num inode_number, struct inode* inodep);
-void write_block(const void* buffer, block_num num, int offset, int size);
+size_t write_block(const void* buffer, block_num num, int offset, int size);
 void initialize_free_blocks(long size_fs);
 void write_superblock();
 

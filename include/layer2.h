@@ -23,7 +23,7 @@ int fs_open(const char* filepath);
 
 int fs_read(const char *filepath, char *buf, size_t count, off_t offset);
 
-int fs_write(const char* filepath, long offset, const char* buffer, long size);
+int fs_write(const char* filepath, long offset, const char* buffer, size_t size);
 
 int fs_getattr(const char* filepath, struct stat* stbuf);
 

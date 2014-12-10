@@ -34,10 +34,11 @@ int get_block(void* buffer, block_num num){
     return BLOCK_SIZE;
 }
 
-void put_block(const void* buffer, block_num num){
+size_t put_block(const void* buffer, block_num num){
     lseek(fs_desc, num * BLOCK_SIZE, SEEK_SET);
     size_t size = write(fs_desc, buffer, BLOCK_SIZE); //Buffer should have memory allocated already
     if(size < 0){
         perror("WRITE ERROR!\n");
     }
+    return size;
 }

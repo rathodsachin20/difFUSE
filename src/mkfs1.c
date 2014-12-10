@@ -114,7 +114,7 @@ void write_inode(block_num inumber, struct inode* inodep){
 
 }
 
-void write_block(const void* buffer, block_num num, int offset, int size){
+size_t write_block(const void* buffer, block_num num, int offset, int size){
     if(offset >= BLOCK_SIZE){
         return;
     }
@@ -126,7 +126,7 @@ void write_block(const void* buffer, block_num num, int offset, int size){
     get_block(read_buff, num);
     memcpy(&read_buff[offset], buffer, size);
     //printf("Buffer:%s. Readbuff:%s\n", (char*)buffer, read_buff);
-    put_block(read_buff, num);
+    return put_block(read_buff, num);
 }
 
 /* Initialize list of free blocks. Fill link data blocks with entries for free blocks.
