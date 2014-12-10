@@ -32,5 +32,6 @@ int fs_getattr(const char* filepath, struct stat* stbuf);
 int fs_readdir(const char *filepath, void *buf, fuse_fill_dir_t filler,
              off_t offset, struct fuse_file_info *fi);
 
+int fs_mod_time(const char* path, const struct timespec tv[2]);
 
 #endif /* __layer2_h__  */

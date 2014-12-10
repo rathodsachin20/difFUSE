@@ -147,7 +147,7 @@ void initialize_free_blocks(long size_fs){
         if(i <= num_blocks-num_entries){
             for(j=0; j<num_entries; j++){
                 free_list.list[j] = i-j+num_entries;
-                if(i<start+2*num_entries)printf("Entry: Block[%d][%d]=%ld\t", i, j, free_list.list[j]);
+                //if(i<start+2*num_entries)printf("Entry: Block[%d][%d]=%ld\t", i, j, free_list.list[j]);
             }
         }
         else{
