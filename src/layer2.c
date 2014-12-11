@@ -752,7 +752,6 @@ int fs_rename(const char* oldpath, const char* newpath){
 	read_block(&dir, block_no, 0, sizeof(struct directory));
 	for(j=0; j<BLOCK_SIZE/NAMEI_ENTRY_SIZE; j++){
 	    if(dir.inode_num[j] == op_inode_num){
-		dir.name[j] //set name
 		strcpy(dir.name[j],"changed");
 		write_block(&dir,block_no, 0, sizeof(struct directory));
 		write_inode(op_pinode_num, &op_pinode);
@@ -760,5 +759,4 @@ int fs_rename(const char* oldpath, const char* newpath){
 	    }
 	}
     }
-
 }
