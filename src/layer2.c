@@ -480,7 +480,8 @@ int fs_write(const char* filepath, long offset, const char* buffer, size_t size)
             block_no = get_file_block_num(i, inode_num, true);
             if(block_no==0){
                 printf("File System Full??\n");
-                return 0;
+                return -ENOSPC;
+                //return 0;
             }
             count = write_block(&buffer[write_count], block_no, 0, BLOCK_SIZE);
             if(count<BLOCK_SIZE)
