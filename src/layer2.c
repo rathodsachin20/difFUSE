@@ -211,6 +211,7 @@ void add_inode_entry(const char* filepath, block_num file_inum){
         block_no = get_file_block_num(lastindex+1, parent_inum, true);
         initialize_dir_block(block_no);
         parent_node.last_filled_block_index = lastindex + 1;;
+        parent_node.file_size += BLOCK_SIZE;;
         write_inode(parent_inum, &parent_node);
         read_block(&dir, block_no, 0, sizeof(struct directory));
         dir.inode_num[0] = file_inum;
@@ -358,6 +359,7 @@ int fs_create_dir(const char *filepath, mode_t mode){
 
     read_inode(inode_num, &node);
     node.last_filled_block_index = 0;
+    node.file_size = BLOCK_SIZE;
     node.owner_id = 121 ;
     node.group_id = 1;
     //node.type = 2;
@@ -451,7 +453,6 @@ int fs_read(const char *filepath, char *buf, size_t count, off_t offset){
 int fs_write(const char* filepath, long offset, const char* buffer, size_t size){
     if(size <= 0) return -1;
     block_num inode_num = fs_namei(filepath);
-    //mode_t mode = NULL; // TODO: Change this to defaults
     
     // Write expects file to be already created
     printf("File name:%s inode:%ld\n", filepath, inode_num);
@@ -514,7 +515,7 @@ int fs_getattr(const char* filepath, struct stat* stbuf){
     int res = 0;
 
     memset(stbuf, 0, sizeof(struct stat));
-    if (strcmp(filepath, "/") == 0) { // Path is a directory TODO:currently only root. do for any dir
+    /*if (strcmp(filepath, "/") == 0) { // Path is a directory TODO:currently only root. do for any dir
         printf("getattr path dir:%s\n", filepath);
         block_num inode_no = fs_namei(filepath);
         if(inode_no == 0){
@@ -527,7 +528,10 @@ int fs_getattr(const char* filepath, struct stat* stbuf){
         stbuf->st_mode = node.mode;
         stbuf->st_nlink = 2;
         stbuf->st_size = node.file_size;
-    } else if (filepath[0] == '/') { //Path is a file that starts with root
+        stbuf->st_atime = node.accessed;
+        stbuf->st_mtime = node.file_modified;
+    } else*/
+    if (filepath[0] == '/') { //Path is a file that starts with root
         printf("getattr path file:%s\n", filepath);
         block_num inode_no = fs_namei(filepath);
         if(inode_no == 0){
@@ -540,6 +544,8 @@ int fs_getattr(const char* filepath, struct stat* stbuf){
         stbuf->st_mode = node.mode;
         stbuf->st_nlink = 1;
         stbuf->st_size = node.file_size;
+        stbuf->st_atime = node.accessed;
+        stbuf->st_mtime = node.file_modified;
     } else
         res = -ENOENT;
 
@@ -576,7 +582,9 @@ int fs_readdir(const char *filepath, void *buf, fuse_fill_dir_t filler,
             struct stat stbuf;
             //stbuf.st_nlink = 1;
             //stbuf.st_size = 111;
-            stbuf.st_mode = node.mode; //TODO: take this parameter from inode
+            stbuf.st_mode = node.mode;
+            stbuf.st_atime = node.accessed;
+            stbuf.st_mtime = node.file_modified;
             for(i=0; i<BLOCK_SIZE/NAMEI_ENTRY_SIZE; i++){
                 //printf("\n file entry:%s.", dir.name[i]);
                 if(dir.inode_num[i] != 0 ){
@@ -621,7 +629,7 @@ int fs_unlink(const char* filepath){
 	for(j=0; j< BLOCK_SIZE/NAMEI_ENTRY_SIZE; j++){
 	    if(dir.inode_num[j] == inode_num){
 	       dir.inode_num[j] = 0;
-	       memset(dir.name[i],0,NAMEI_ENTRY_SIZE-sizeof(block_num));
+	       //memset(dir.name[i],0,NAMEI_ENTRY_SIZE-sizeof(block_num));
 	       parent_entry_freed=1;
 	       printf("inode unlinked from parent directory\n");
 	       write_block(&dir, pinode.direct_blocks[i], 0, sizeof(struct directory));
