@@ -656,6 +656,11 @@ int fs_unlink(const char* filepath){
 
     free_inode(inode_num);
 
+    struct directory dir;
+    struct inode pinode;
+    block_num n,block_no;
+    int j, p_entry_found = 0;
+
     block_num pinode_num = get_parent_inode_num(filepath);
     read_inode(pinode_num, &pinode);
     block_num p_last_index = pinode.last_filled_block_index;
