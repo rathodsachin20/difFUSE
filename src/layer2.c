@@ -338,7 +338,7 @@ int fs_create(const char *filepath, mode_t mode){
 
 int fs_create_dir(const char *filepath, mode_t mode){
     if(filepath == NULL)
-        return -1; //have to check how to return error number
+        return ENOENT; //have to check how to return error number
 
     struct inode node = {};
     block_num inode_num = allocate_inode(&node);
