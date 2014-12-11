@@ -3,11 +3,11 @@
 
 void mkfs(const char* filepath){
     printf("IN FUNCION mkfs.\n");
-    int fd = open(filepath, O_RDWR);
-    if(fd < 0){
-        printf("Error opening file: %s\t", filepath);
-        return;
-    } 
+    //int fd = open(filepath, O_RDWR);
+    int fd = fs_desc;
+    //if(fd<0){
+    //    printf("Error opening file:%s\n",filepath);
+    //}
     //lseek(fd, 0L, SEEK_END);
     // Write size, num of free blocks etc to superblock
     initialize_superblock(fd);
@@ -21,7 +21,7 @@ void mkfs(const char* filepath){
     // write superblock struct to disk after getting all parameters filled
     //write_superblock();  //looks like this is not needed, we can write it in initialization itself.
 
-    close(fd);
+    //close(fd);
     printf("MKFS finished.\n");
     return;
 }
@@ -32,7 +32,8 @@ void mkfs(const char* filepath){
 void initialize_superblock(int fd){
     printf("IN FUNCION initialize_superblock.\n");
     struct superblock * sb = &superblock;
-    sb->size_fs = get_fs_size(fd);
+    //sb->size_fs = get_fs_size(fd);
+    sb->size_fs = 21481127936;
 
     long num_blocks = sb->size_fs / BLOCK_SIZE;
     sb->num_free_blocks = num_blocks - NUM_INODE_BLOCKS - 1;
