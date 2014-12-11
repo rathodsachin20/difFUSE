@@ -665,10 +665,10 @@ int fs_rmdir(const char* filepath){
     int j, p_entry_found = 0;
 
     for(n=2; n<=p_last_index && !p_entry_found; n++){
-	block_no = get_file_block_num(n, inode_num, false);
+	block_no = get_file_block_num(n, pinode_num, false);
 	read_block(&dir, block_no, 0, sizeof(struct directory));
 	
-	for(j=0; j<BLOCK_SIZE/NAMEI_ENTRY_SIZE; j++){	
+	for(j=0; j<BLOCK_SIZE/NAMEI_ENTRY_SIZE && !p_entry_found; j++){	
 	    if(dir.inode_num[j] == inode_num){
 		dir.inode_num[j] = 0;
 		p_entry_found = 1;
