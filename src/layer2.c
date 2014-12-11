@@ -742,6 +742,7 @@ int fs_rename(const char* oldpath, const char* newpath){
     struct directory dir;
     int j;
 
+    block_num op_inode_num = fs_namei(oldpath);
     struct inode op_pinode;
     block_num op_pinode_num = get_parent_inode_num(oldpath);
     read_inode(op_pinode_num, &op_pinode);
