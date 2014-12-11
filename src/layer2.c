@@ -665,7 +665,7 @@ int fs_rmdir(const char* filepath){
     int j, p_entry_found = 0;
 
     for(n=2; n<=p_last_index && !p_entry_found; n++){
-	block_no = read_block_num(n, inode_num, false);
+	block_no = get_file_block_num(n, inode_num, false);
 	read_block(&dir, block_no, 0, sizeof(struct directory));
 	
 	for(j=0; j<BLOCK_SIZE/NAMEI_ENTRY_SIZE; j++){	

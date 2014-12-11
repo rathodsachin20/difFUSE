@@ -34,4 +34,6 @@ int fs_readdir(const char *filepath, void *buf, fuse_fill_dir_t filler,
 
 int fs_mod_time(const char* path, const struct timespec tv[2]);
 
+int fs_rmdir(const char* path);
+
 #endif /* __layer2_h__  */
