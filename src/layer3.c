@@ -79,6 +79,12 @@ static int dif_unlink(const char *path)
     return fs_unlink(path);
 }
 
+static int dif_rmdir(const char* path){
+    if(fs_namei(path) == 0)
+	return -ENOENT;
+    return fs_rmdir(path);
+}
+
 int dif_utimens(const char * path, const struct timespec tv[2]){
     if(fs_namei(path) == 0)
         return -ENOENT;
@@ -95,6 +101,7 @@ static struct fuse_operations dif_oper = {
     .write      = dif_write,
     .mkdir = dif_mkdir,
     .unlink = dif_unlink,
+    .rmdir = dif_rmdir,
     .utimens = dif_utimens,
 };
 

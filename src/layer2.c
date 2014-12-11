@@ -663,12 +663,31 @@ int fs_rmdir(const char* filepath){
 	printf("%s: not a directory, can't delete",filepath);
 	return -1;
     }
-    
+
     struct directory dir;
+    struct inode pinode;
+    block_num pinode_num = get_parent_inode_num(filepath);
+    read_inode(pinode_num, &pinode);
+    block_num p_last_index = pinode.last_filled_block_index;
+    block_num n,block_no;
+    int j, p_entry_found = 0;
+
+    for(n=2; n<=p_last_index && !p_entry_found; n++){
+	block_no = get_file_block_num(n, inode_num, false);
+	read_block(&dir, block_no, 0, sizeof(struct directory));
+	
+	for(j=0; j<BLOCK_SIZE/NAMEI_ENTRY_SIZE; j++){	
+	    if(dir.inode_num[j] == inode_num){
+		dir.inode_num[j] = 0;
+		p_entry_found = 1;
+		write_block(&dir, block_no, 0, sizeof(struct directory));
+	    }
+	}
+    }
+    
+    write_inode(pinode_num, &pinode);
+
     block_num dir_last_index = dir_inode.last_filled_block_index;
-    block_num n = 0;
-    block_num block_no;
-    int j;
     
     for(n=2; n<=dir_last_index; n++){
 	block_no = get_file_block_num(n, inode_num, false);
@@ -701,10 +720,9 @@ int fs_rmdir(const char* filepath){
 
 		write_inode(dir.inode_num[j], &node);
 	    }
-	    
-
 	write_block(&dir, block_no, 0, sizeof(struct directory));
 	*/
+
         }
     }
     free_inode(inode_num);
