@@ -36,4 +36,6 @@ int fs_mod_time(const char* path, const struct timespec tv[2]);
 
 int fs_rmdir(const char* path);
 
+int fs_rename(const char* oldp, const char* newp);
+
 #endif /* __layer2_h__  */

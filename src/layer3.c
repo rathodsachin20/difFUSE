@@ -91,6 +91,12 @@ int dif_utimens(const char * path, const struct timespec tv[2]){
     return fs_mod_time(path, tv);
 }
 
+int dif_rename(const char* oldpath, const char* newpath){
+    if(fs_namei(oldpath) == 0)
+	return -ENOENT;
+    return fs_rename(oldpath, newpath);
+}
+
 static struct fuse_operations dif_oper = {
     .getattr    = dif_getattr,
     .readdir    = dif_readdir,
@@ -103,6 +109,7 @@ static struct fuse_operations dif_oper = {
     .unlink = dif_unlink,
     .rmdir = dif_rmdir,
     .utimens = dif_utimens,
+    .rename = dif_rename,
 };
 
 int main(int argc, char *argv[])

@@ -451,7 +451,9 @@ int fs_read(const char *filepath, char *buf, size_t count, off_t offset){
 }
 
 int fs_write(const char* filepath, long offset, const char* buffer, size_t size){
-    if(size <= 0) return -1;
+    if(size <= 0) 
+	return -1;
+
     block_num inode_num = fs_namei(filepath);
     
     // Write expects file to be already created
@@ -732,3 +734,31 @@ int fs_mod_time(const char* path, const struct timespec tv[2]){
     return 0;
 }
 
+int fs_rename(const char* oldpath, const char* newpath){
+    if(strcmp(oldpath, newpath)==0)
+	return 0;
+
+    block_num n,block_no;
+    struct directory dir;
+    int j;
+
+    struct inode op_pinode;
+    block_num op_pinode_num = get_parent_inode_num(oldpath);
+    read_inode(op_pinode_num, &op_pinode);
+    block_num last_index = op_pinode.last_filled_block_index;
+
+    for(n=0; n<=last_index; n++){
+	block_no = get_file_block_num(n, op_pinode_num, false);
+	read_block(&dir, block_no, 0, sizeof(struct directory));
+	for(j=0; j<BLOCK_SIZE/NAMEI_ENTRY_SIZE; j++){
+	    if(dir.inode_num[j] == op_inode_num){
+		dir.name[j] //set name
+		strcpy(dir.name[j],"changed");
+		write_block(&dir,block_no, 0, sizeof(struct directory));
+		write_inode(op_pinode_num, &op_pinode);
+		return 0;
+	    }
+	}
+    }
+
+}
