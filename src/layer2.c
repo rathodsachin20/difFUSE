@@ -647,6 +647,7 @@ int fs_unlink(const char* filepath){
     read_inode(inode_num, &node);
     int last = node.last_filled_block_index;
     block_num block_no;
+    int i,
 
     for(i=0; i<=last;i++){
 	block_no = get_file_block_num(i, inode_num,false);
@@ -658,7 +659,7 @@ int fs_unlink(const char* filepath){
 
     struct directory dir;
     struct inode pinode;
-    block_num n,block_no;
+    block_num n;
     int j, p_entry_found = 0;
 
     block_num pinode_num = get_parent_inode_num(filepath);
@@ -789,4 +790,6 @@ int fs_rename(const char* oldpath, const char* newpath){
 	    }
 	}
     }
+
+    return -1;
 }
