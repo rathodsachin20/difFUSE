@@ -287,7 +287,7 @@ block_num fs_namei(const char* filep){
                 n++;
                 if(!found){
                     printf("%s:PATH NOT FOUND!!!\n", filepath);
-                    return ENOENT;
+                    return 0;
                 }
             }
             fname = strtok(NULL,"/");
@@ -299,7 +299,7 @@ block_num fs_namei(const char* filep){
 
 int fs_create(const char *filepath, mode_t mode){
     if(filepath == NULL)
-        return ENOENT; 
+        return -ENOENT; 
 
     int len = strlen(filepath);
     
@@ -338,7 +338,7 @@ int fs_create(const char *filepath, mode_t mode){
 
 int fs_create_dir(const char *filepath, mode_t mode){
     if(filepath == NULL)
-        return ENOENT; //have to check how to return error number
+        return -ENOENT; //have to check how to return error number
 
     struct inode node = {};
     block_num inode_num = allocate_inode(&node);
@@ -483,7 +483,7 @@ int fs_write(const char* filepath, long offset, const char* buffer, size_t size)
         block_no = get_file_block_num(i, inode_num, true);
         if(block_no==0){
             printf("File System Full??\n");
-            return ENOSPC;
+            return 0;
         }
         write_count = write_block(&buffer[buff_offset], block_no, offset%BLOCK_SIZE, BLOCK_SIZE);
         if(write_count<BLOCK_SIZE)
@@ -495,7 +495,7 @@ int fs_write(const char* filepath, long offset, const char* buffer, size_t size)
     block_no = get_file_block_num(sbi+num_blocks-1, inode_num, true);
         if(block_no==0){
             printf("File System Full??\n");
-            return ENOSPC;
+            return 0;
         }
     write_count = write_block(&buffer[buff_offset], block_no, 0, remaining);
         if(write_count<remaining)
@@ -611,7 +611,7 @@ int fs_unlink(const char* filepath){
     block_num inode_num = fs_namei(filepath);
     if(inode_num == 0){
 	printf("can not delete.. %s : file doesn't exit", filepath);
-	return ENOENT;
+	return -ENOENT;
     }
     
     int i,j, parent_entry_freed = 0;
