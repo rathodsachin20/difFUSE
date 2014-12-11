@@ -712,7 +712,6 @@ int fs_rmdir(const char* filepath){
     free_inode(inode_num);
     block_num pinode_num = get_parent_inode_num(filepath);
     read_inode(pinode_num, &pinode);
-    block_num p_last_index = pinode.last_filled_block_index;
 
     for(n=0; n<=p_last_index && !p_entry_found; n++){
 	block_no = get_file_block_num(n, pinode_num, false);
