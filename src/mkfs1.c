@@ -8,7 +8,7 @@ void mkfs(const char* filepath){
         printf("Error opening file: %s\t", filepath);
         return;
     } 
-    lseek(fd, 0L, SEEK_END);
+    //lseek(fd, 0L, SEEK_END);
     // Write size, num of free blocks etc to superblock
     initialize_superblock(fd);
 
@@ -127,7 +127,8 @@ size_t write_block(const void* buffer, block_num num, int offset, int size){
     get_block(read_buff, num);
     memcpy(&read_buff[offset], buffer, size);
     //printf("Buffer:%s. Readbuff:%s\n", (char*)buffer, read_buff);
-    return put_block(read_buff, num);
+    put_block(read_buff, num);
+    return size;
 }
 
 /* Initialize list of free blocks. Fill link data blocks with entries for free blocks.

@@ -360,8 +360,8 @@ int fs_create_dir(const char *filepath, mode_t mode){
     read_inode(inode_num, &node);
     node.last_filled_block_index = 0;
     node.file_size = BLOCK_SIZE;
-    node.owner_id = 121 ;
-    node.group_id = 1;
+    //node.owner_id = 121 ;
+    //node.group_id = 1;
     //node.type = 2;
     if(mode) node.mode = mode|S_IFDIR;
     else{
@@ -450,6 +450,99 @@ int fs_read(const char *filepath, char *buf, size_t count, off_t offset){
     return count;
 }
 
+
+int fs_write(const char* filepath, long offset, const char* buffer, size_t size){
+    if(size <= 0) return -1;
+    block_num inode_num = fs_namei(filepath);
+    
+    // Write expects file to be already created
+    printf("File name:%s inode:%ld\n", filepath, inode_num);
+    if(inode_num == 0){
+        printf("%s : No such file exists!\n", filepath);
+        return -ENOENT;
+    }
+
+    struct inode node;
+    //read_inode(inode_num, &node);
+    //if(node.file_size > 0){
+    //    printf("File Already exists with non-zero size!!\n");
+        //return -1;
+    //}
+    size_t write_count = 0;
+    size_t count = 0;
+    block_num block_no = 0;
+    block_num lbi = 0;
+    int i;
+    if(offset==0){
+        int num_blocks = (size / BLOCK_SIZE) + 1;
+        block_num block_no = 0;
+        for(i=0; i<num_blocks-1;i++){
+            block_no = get_file_block_num(i, inode_num, true);
+            if(block_no==0){
+                printf("File System Full??\n");
+                return 0;
+            }
+            count = write_block(&buffer[write_count], block_no, 0, BLOCK_SIZE);
+            if(count<BLOCK_SIZE)
+                return write_count;
+            write_count += count;
+        }
+        lbi = num_blocks-1;
+        block_no = get_file_block_num(lbi, inode_num, true);
+        if(block_no==0){
+            printf("File System Full??\n");
+            return write_count;
+        }
+        count = write_block(&buffer[write_count], block_no, 0, size%BLOCK_SIZE);
+        printf("num_blocks=%ld,size=%ld,count=%ld\n",num_blocks, size, count);
+        write_count += count;
+    }
+    else{
+        block_num sbi = offset/BLOCK_SIZE; // Start block index
+        count = BLOCK_SIZE - (offset%BLOCK_SIZE);
+        if(count>size)count=size;
+        block_no = get_file_block_num(sbi, inode_num, true);
+        if(block_no==0){
+            printf("File System Full??\n");
+            return 0;
+        }
+        write_count = write_block(&buffer[0], block_no, offset%BLOCK_SIZE, count);
+        if(write_count<count)
+            return write_count;
+
+        size_t remaining = size-write_count;
+        int num_blocks = (remaining / BLOCK_SIZE) + 1;
+        block_num block_no = 0;
+        for(i=sbi+1; i<sbi+1+num_blocks-1;i++){
+            block_no = get_file_block_num(i, inode_num, true);
+            if(block_no==0){
+                printf("File System Full??\n");
+                return 0;
+            }
+            count = write_block(&buffer[write_count], block_no, 0, BLOCK_SIZE);
+            if(count<BLOCK_SIZE)
+                return write_count;
+            write_count += count;
+        }
+        lbi = sbi+1+num_blocks-1;
+        block_no = get_file_block_num(lbi, inode_num, true);
+        if(block_no==0){
+            printf("File System Full??\n");
+            return write_count;
+        }
+        count = write_block(&buffer[write_count], block_no, 0, remaining%BLOCK_SIZE);
+        write_count += count;
+    }
+
+    read_inode(inode_num, &node); // Always read just before modifying!!
+    node.last_filled_block_index = lbi;
+    node.file_size += write_count;
+    
+    write_inode(inode_num, &node);
+    printf("file write complete.\n");
+    return write_count;
+}
+/*
 int fs_write(const char* filepath, long offset, const char* buffer, size_t size){
     if(size <= 0) 
 	return -1;
@@ -512,7 +605,7 @@ int fs_write(const char* filepath, long offset, const char* buffer, size_t size)
     }
     return size;
 }
-
+*/
 int fs_getattr(const char* filepath, struct stat* stbuf){
     int res = 0;
 
