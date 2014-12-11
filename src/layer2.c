@@ -647,7 +647,7 @@ int fs_unlink(const char* filepath){
     read_inode(inode_num, &node);
     int last = node.last_filled_block_index;
     block_num block_no;
-    int i,
+    int i;
 
     for(i=0; i<=last;i++){
 	block_no = get_file_block_num(i, inode_num,false);
