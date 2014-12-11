@@ -613,7 +613,8 @@ int fs_unlink(const char* filepath){
 	printf("can not delete.. %s : file doesn't exit", filepath);
 	return -ENOENT;
     }
-    
+ 
+ /*
     int i,j, parent_entry_freed = 0;
     struct inode pinode;
     block_num pinode_num = get_parent_inode_num(filepath);
@@ -641,7 +642,7 @@ int fs_unlink(const char* filepath){
     }
    
     write_inode(pinode_num, &pinode);
-
+*/
     struct inode node;
     read_inode(inode_num, &node);
     int last = node.last_filled_block_index;
@@ -654,6 +655,28 @@ int fs_unlink(const char* filepath){
     }
 
     free_inode(inode_num);
+
+    block_num pinode_num = get_parent_inode_num(filepath);
+    read_inode(pinode_num, &pinode);
+    block_num p_last_index = pinode.last_filled_block_index;
+   
+    for(n=0; n<=p_last_index && !p_entry_found; n++){
+	block_no = get_file_block_num(n, pinode_num, false);
+	read_block(&dir, block_no, 0, sizeof(struct directory));
+	if (n==0)j=2;
+    else j=0;
+	for(; j<BLOCK_SIZE/NAMEI_ENTRY_SIZE && !p_entry_found; j++){	
+        printf("searchin:%ld, current:%ld", inode_num,dir.inode_num[j]);
+	    if(dir.inode_num[j] == inode_num){
+		dir.inode_num[j] = 0;
+		p_entry_found = 1;
+		write_block(&dir, block_no, 0, sizeof(struct directory));
+	    }
+	}
+    }
+    
+    write_inode(pinode_num, &pinode);
+    
     return 0;
 }
 
@@ -692,12 +715,13 @@ int fs_rmdir(const char* filepath){
     printf("DIRECTORY EWAS EMPRTRYYY!!\n");
 
     block_num pinode_num = get_parent_inode_num(filepath);
-    read_inode(pinode_num, &pinode);
+    //read_inode(pinode_num, &pinode);
     block_num p_last_index = pinode.last_filled_block_index;
-   
+   /*
     printf("WRITING AND EXITING\n");
     write_inode(pinode_num, &pinode);
-    
+    */
+
     free_inode(inode_num);
     read_inode(pinode_num, &pinode);
 
