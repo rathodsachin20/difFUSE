@@ -684,6 +684,7 @@ int fs_rmdir(const char* filepath){
 	write_block(&dir, block_no, 0, sizeof(struct directory));
     }
 
+    printf("DIRECTORY EWAS EMPRTRYYY!!\n");
 
     struct inode pinode;
     block_num pinode_num = get_parent_inode_num(filepath);
@@ -703,7 +704,8 @@ int fs_rmdir(const char* filepath){
 	    }
 	}
     }
-    
+   
+   printf("WRITING AND EXITING\n");
     write_inode(pinode_num, &pinode);
     
     free_inode(inode_num);
