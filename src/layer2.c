@@ -684,8 +684,6 @@ int fs_rmdir(const char* filepath){
 	write_block(&dir, block_no, 0, sizeof(struct directory));
     }
 
-    free_inode(inode_num);
-
 
     struct inode pinode;
     block_num pinode_num = get_parent_inode_num(filepath);
@@ -697,7 +695,7 @@ int fs_rmdir(const char* filepath){
 	read_block(&dir, block_no, 0, sizeof(struct directory));
 	
 	for(j=0; j<BLOCK_SIZE/NAMEI_ENTRY_SIZE && !p_entry_found; j++){	
-	    if(dir.inode_num[j] == pinode_num){
+	    if(dir.inode_num[j] == inode_num){
 		dir.inode_num[j] = 0;
 		p_entry_found = 1;
 		write_block(&dir, block_no, 0, sizeof(struct directory));
@@ -707,6 +705,8 @@ int fs_rmdir(const char* filepath){
     }
     
     write_inode(pinode_num, &pinode);
+    
+    free_inode(inode_num);
     
     return 0;
 }
