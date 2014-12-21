@@ -887,3 +887,16 @@ int fs_rename(const char* oldpath, const char* newpath){
 
     return -1;
 }
+
+
+int fs_chmod(const char* path, mode_t mode){
+    block_num inode_num = fs_namei(path);
+    if(inode_num==0)
+        return -ENOENT;
+    struct inode node;
+    read_inode(inode_num, &node);
+    node.mode = mode|S_IRUSR|S_IWUSR;
+    write_inode(inode_num, &node);
+    
+    return 0;
+}

@@ -97,6 +97,12 @@ int dif_rename(const char* oldpath, const char* newpath){
     return fs_rename(oldpath, newpath);
 }
 
+int dif_chmod(const char* path, mode_t mode){
+    if(fs_namei(path) == 0)
+	return -ENOENT;
+    return fs_chmod(path, mode);
+}
+
 static struct fuse_operations dif_oper = {
     .getattr    = dif_getattr,
     .readdir    = dif_readdir,
@@ -110,6 +116,7 @@ static struct fuse_operations dif_oper = {
     .rmdir = dif_rmdir,
     .utimens = dif_utimens,
     .rename = dif_rename,
+    .chmod = dif_chmod,
 };
 
 int main(int argc, char *argv[])

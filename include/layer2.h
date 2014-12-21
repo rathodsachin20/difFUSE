@@ -38,4 +38,6 @@ int fs_rmdir(const char* path);
 
 int fs_rename(const char* oldp, const char* newp);
 
+int fs_chmod(const char* path, mode_t mode);
+
 #endif /* __layer2_h__  */
