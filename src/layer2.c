@@ -434,7 +434,10 @@ int fs_read(const char *filepath, char *buf, size_t count, off_t offset){
 
     while(index <= lastindex){ // File larger than one block
         block_no = get_file_block_num(index, inode_num, false);
-        if(!block_no) continue;
+        if(!block_no){
+            index++;
+            continue;
+        }
         if (remaining>BLOCK_SIZE)
             read_count = read_block(read_buff, block_no, 0, BLOCK_SIZE);
         else
