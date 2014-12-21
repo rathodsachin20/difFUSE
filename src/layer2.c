@@ -912,8 +912,8 @@ int fs_chown(const char* path, uid_t uid, gid_t gid){
         return -ENOENT;
     struct inode node;
     read_inode(inode_num, &node);
-    node.uid = uid;
-    node.gid = gid;
+    //node.uid = uid;
+    //node.gid = gid;
     write_inode(inode_num, &node);
     
     return 0;
