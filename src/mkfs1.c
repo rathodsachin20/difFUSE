@@ -86,8 +86,8 @@ void initalize_inodes(){
 
     for(i = 0; i < NUM_INODES; i++){
         //inode->inumber = i;
-        inode.owner_id = 0;
-        inode.group_id = 0;
+        inode.uid = 0;
+        inode.gid = 0;
         //inode.type = (char)0;
         //inode.perms = (int16_t)0;
         inode.mode = 0;

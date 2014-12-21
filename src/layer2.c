@@ -638,6 +638,8 @@ int fs_getattr(const char* filepath, struct stat* stbuf){
         read_inode(inode_no, &node);
         //stbuf->st_mode = S_IFREG | 0444;
         stbuf->st_mode = node.mode;
+        stbuf->st_uid = node.uid;
+        stbuf->st_gid = node.gid;
         stbuf->st_nlink = 1;
         stbuf->st_size = node.file_size;
         stbuf->st_atime = node.accessed;
@@ -896,6 +898,19 @@ int fs_chmod(const char* path, mode_t mode){
     struct inode node;
     read_inode(inode_num, &node);
     node.mode = mode|S_IRUSR|S_IWUSR;
+    write_inode(inode_num, &node);
+    
+    return 0;
+}
+
+int fs_chown(const char* path, uid_t uid, gid_t gid){
+    block_num inode_num = fs_namei(path);
+    if(inode_num==0)
+        return -ENOENT;
+    struct inode node;
+    read_inode(inode_num, &node);
+    node.uid = uid;
+    node.gid = gid;
     write_inode(inode_num, &node);
     
     return 0;

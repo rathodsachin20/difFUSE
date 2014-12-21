@@ -40,4 +40,6 @@ int fs_rename(const char* oldp, const char* newp);
 
 int fs_chmod(const char* path, mode_t mode);
 
+int fs_chown(const char* path, uid_t uid, gid_t gid);
+
 #endif /* __layer2_h__  */

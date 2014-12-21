@@ -103,6 +103,13 @@ int dif_chmod(const char* path, mode_t mode){
     return fs_chmod(path, mode);
 }
 
+int dif_chown(const char* path, uid_t uid, gid_t gid){
+    if(fs_namei(path) == 0)
+	return -ENOENT;
+    return fs_chown(path, uid, gid);
+}
+
+
 static struct fuse_operations dif_oper = {
     .getattr    = dif_getattr,
     .readdir    = dif_readdir,
@@ -117,6 +124,7 @@ static struct fuse_operations dif_oper = {
     .utimens = dif_utimens,
     .rename = dif_rename,
     .chmod = dif_chmod,
+    .chown = dif_chown,
 };
 
 int main(int argc, char *argv[])
